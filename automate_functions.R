@@ -111,8 +111,6 @@ collapse_Aspergillaceae <- function(tax_table,otu_table) {
       tricho_genus = tricho_tax[6]
       tricho_species = tricho_tax[7]
       matchflag = 0
-      #print(asper_species)
-      #print(tricho_species)
       if (asper_genus==tricho_genus & asper_species==tricho_species) {
         new_otu = asper_otu+tricho_otu
         otu_table[j,] = new_otu
@@ -128,6 +126,13 @@ collapse_Aspergillaceae <- function(tax_table,otu_table) {
       tax_table = tax_table[-remove_rows,]
       otu_table = otu_table[-remove_rows,]
     }
+  }
+  Aspergillaceae_rows = which(tax_table[,5]=="f__Aspergillaceae")
+  for (i in Aspergillaceae_rows) {
+    asper_tax = as.vector(tax_table[i,])
+    asper_tax[5] = 'f__Trichocomaceae'
+    tax_table[i,] = asper_tax
+    print(asper_tax)
   }
   return_list = list(tax_table,otu_table)
 }
