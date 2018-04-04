@@ -16,7 +16,8 @@ metadata_split_groups = c("I2","I7","U2","U7")           ### NEEDED INPUT. Names
 
 
 ### Load source file ###
-source("P:/MPV/THEJ/BION/FABIAN_backup/automate_functions.R")
+#source("P:/MPV/THEJ/BION/FABIAN_backup/automate_functions.R")
+source("https://raw.githubusercontent.com/thej-ssi/BION/master/automate_functions.R")
 
 ##### Load input files #####
 tsv_input = load_data(input_file)
