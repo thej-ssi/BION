@@ -6,7 +6,7 @@ source('http://bioconductor.org/biocLite.R')
 if(! require("phyloseq")) {
   biocLite('phyloseq')
 }
-if(! require("DESeq")) {
+if(! require("DESeq2")) {
   biocLite("DESeq2")
 }
 library("DESeq2")
