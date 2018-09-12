@@ -539,8 +539,8 @@ top_taxa_heatmap <- function(po,top_10_taxa,filename) {
     color_table= rbind(color_table,c(groups[i],color_names[i]))
   }
   
-  image_filename = paste0(output_dir,"/",filename,".png")
-  legend_filename = paste0(output_dir,"/",filename,"__color_key.txt")
+  image_filename = paste0(filename,".png")
+  legend_filename = paste0(filename,"__color_key.txt")
   write.table(color_table,file = legend_filename,sep="\t",quote = F,col.names = F,row.names = F)
   
   newnames = c()
