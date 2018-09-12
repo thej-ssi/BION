@@ -723,9 +723,9 @@ run_all <- function(rare_prokaryot,rare_eukaryot,rare_fungi,summary_list) {
     filename = paste0(output_dir,"/Fig_9-",i,"_abundance_fungi_individualtop10_",metadata_split_groups[i],".png")
     export(p,file=filename)
   }
-  top_taxa_heatmap(rare_prokaryot,get_top_n_taxa(rare_prokaryot,25),'prokaryot_heatmap')
-  top_taxa_heatmap(rare_eukaryot,get_top_n_taxa(rare_eukaryot,25),'eukaryot_heatmap')
-  top_taxa_heatmap(rare_fungi,get_top_n_taxa(rare_fungi,25),'fungi_heatmap')
+  top_taxa_heatmap(rare_prokaryot,get_top_n_taxa(rare_prokaryot,25),paste0(output_dir,'/prokaryot_heatmap')
+  top_taxa_heatmap(rare_eukaryot,get_top_n_taxa(rare_eukaryot,25),paste0(output_dir,'/eukaryot_heatmap')
+  top_taxa_heatmap(rare_fungi,get_top_n_taxa(rare_fungi,25),paste0(output_dir,'/fungi_heatmap')
   
   ### Write excel file for kruskal-wallis tests performed on abundance of each genus ###
   genus_comparison_prokaryot = genus_comparison(rare_prokaryot_genus,rare_split_prokaryot_genus)
