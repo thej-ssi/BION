@@ -596,6 +596,102 @@ top_taxa_heatmap <- function(po,top_10_taxa,filename) {
             labCol = F)
 }
 
+make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,color_vector) {
+  if (class(po)=="phyloseq") {
+    taxmat = tax_table(po)
+    dd<-otu_table(po)
+    dd<-apply(dd, 2, function(x) x/sum(x)*100)
+    dd<-as.data.frame(dd)
+    split_variable_vector = get_variable(po,split_variable)
+    dd$sum<-apply(dd, 1, sum)
+    dd_sorted<-dd[dd$sum>0,]
+    dd_sorted<-dd_sorted[,-ncol(dd_sorted)]
+    dd_sorted_d<-vegdist(t(dd_sorted), method="bray")
+    fit <- hclust(dd_sorted_d, method="ward.D")
+    #plot(fit, cex=0.5) # display dendogram
+    cluster_order<-fit$labels[fit$order]
+    newnames = c()
+    top10_otu_table = matrix(nrow=0,ncol=ncol(dd_sorted))
+    for (i in 1:length(top_10_taxa)) {
+      rownumber = top_10_taxa[i]
+      tax_vector = as.vector(taxmat[rownumber,])
+      if (!is.na(tax_vector[7])) {
+        newname = paste0(tax_vector[6],' ',tax_vector[7])
+      } else if (!is.na(tax_vector[6]) & !tax_vector[6]=="unclassified") {
+        newname = tax_vector[6]
+      } else if (!is.na(tax_vector[5]) & !tax_vector[5]=="unclassified") {
+        newname = tax_vector[5]
+      } else if (!is.na(tax_vector[4]) & !tax_vector[4]=="unclassified") {
+        newname = tax_vector[4]
+      } else if (!is.na(tax_vector[3]) & !tax_vector[3]=="unclassified") {
+        newname = tax_vector[3]
+      } else {
+        newname = tax_vector[2]
+      }
+      newnames = c(newnames,newname)
+      top10_otu_table = rbind(top10_otu_table,dd[rownumber,])
+    }
+    rownames(top10_otu_table)<-newnames
+    top10=top10_otu_table
+    top10 = top10[,!colnames(top10)=="sum"]
+    top10$species<-row.names(top10)
+    melt_top10<-melt(top10)
+    melt_top10$variable <- factor(melt_top10$variable,levels = cluster_order)
+    names(melt_top10)<-c("genus", "ID", "percent")
+    p <- plot_ly(data = melt_top10[which(melt_top10$genus == rownames(top10)[10]),], x = ~ID, y = ~percent, type = 'bar', name =rownames(top10)[10]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[9]),], name =rownames(top10)[9]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[8]),], name =rownames(top10)[8]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[7]),], name =rownames(top10)[7]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[6]),], name =rownames(top10)[6]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[5]),], name =rownames(top10)[5]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[4]),], name =rownames(top10)[4]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[3]),], name =rownames(top10)[3]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[2]),], name =rownames(top10)[2]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[1]),], name =rownames(top10)[1]) %>%
+      layout(title = plot_name,
+             xaxis=list(title="Sample ID"),
+             yaxis=list(title="Abundance (percent of rarefied counts)"),
+             barmode = 'stack',
+             #autosize = F,
+             margin = list(l=50,r=50,b=100,t=50))
+    p
+    heatmap_data = as.matrix(dd_sorted[1:2,fit$order])
+    sorted_variable_vector = split_variable_vector[fit$order]
+    variable_levels = levels(factor(sorted_variable_vector))
+    variable_n = length(variable_levels)
+    if (missing(color_vector) | !length(color_vector)==variable_n) {
+      if (variable_n < 10) {
+        Rcol_vec = RColorBrewer::brewer.pal(variable_n,"Set1")
+      } else if (variable_n < 13) {
+        Rcol_vec = RColorBrewer::brewer.pal(variable_n,"Set3")
+      } else {
+        Rcol_vec = grDevices::rainbow(variable_n)
+      }
+    } else {
+      Rcol_vec = color_vector
+    }
+    
+    col_vec = sorted_variable_vector
+    for (i in 1:length(Rcol_vec)) {
+      col_vec = replace(col_vec,col_vec==variable_levels[i],Rcol_vec[i])
+    }
+    print(col_vec)
+    heatmap.2(heatmap_data,
+              Rowv = FALSE,
+              Colv = FALSE,
+              trace = "none",
+              scale = "row",
+              dendrogram = "none",
+              col = colorspace::diverge_hsv(50),
+              margins = c(5,15),
+              ColSideColors = col_vec,
+              #main = "Heatmap showing relative abundance of top 10 genera across all samples",
+              key.title = "")
+              #lwid = 2)
+    return(p)
+  }
+}
+
 
 run_all <- function(rare_prokaryot,rare_eukaryot,rare_fungi,summary_list) {
   ### Setup directory for plots and tables ###
