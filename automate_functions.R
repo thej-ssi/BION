@@ -417,7 +417,32 @@ alphadiversity_plot <- function(po,plot_name) {
   return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value)
   return(return_list)
 }
-
+              
+make_alphadiversity_object <- function(po,variable_name,plot_name,color_list) {
+  if (length(col_vec) == length(levels(factor(get_variable(po,variable_name))))) {
+    col_vec = color_list
+  } else {
+    col_vec = RColorBrewer::brewer.pal(length(levels(factor(get_variable(po)$sample_groups))),"Set1")
+    print(paste0('Number of colors given ', length(col_vec) , 'does not match number of levels in variable ', length(levels(factor(get_variable(po)$variable_name)))))
+  }
+  r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
+  p1 <- plot_ly(r, y = ~Observed, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
+    layout(title = plot_name,
+           #xaxis=list(tickangle = 90),
+           yaxis=list(title='Number of observed OTUs'),
+           margin = list(l=50,r=50,b=100,t=50),
+           showlegend = FALSE)
+  p2 <- plot_ly(r, y = ~Shannon, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5,colors = col_vec) %>%
+    layout(title = plot_name,
+           #xaxis=list(tickangle = -45),
+           yaxis=list(title='Shannon diversity index'),
+           margin = list(l=50,r=50,b=100,t=50),
+           showlegend = FALSE)
+  kruskal_Observed = kruskal.test(r$Observed,r$type)
+  kruskal_Shannon = kruskal.test(r$Shannon,r$type)
+  return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value)
+  return(return_list)
+}
 
 set_api_key <- function() {
   Sys.setenv("plotly_username"="thej-ssi")
