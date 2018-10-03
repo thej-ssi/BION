@@ -471,6 +471,54 @@ check_counts_both <- function(po_prokaryot,po_eukaryot) {
   print(sort(colSums(otu_table(po_eukaryot))))
   plot(sort(colSums(otu_table(po_eukaryot))),main = "Number of eukaryot sequences found in samples")
 }
+              
+              
+make_alphadiversity_object <- function(po,variable_name,plot_name,color_list) {
+  groups = levels(factor(get_variable(po,variable_name)))
+  if (length(color_list) == length(groups)) {
+    col_vec = color_list
+  } else {
+    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+    print(paste0('Number of colors given (', length(col_vec) , ') does not match number of levels in variable (', length(groups),')'))
+  }
+  r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
+  p1 <- plot_ly(r, y = ~Observed, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
+    layout(title = plot_name,
+           #xaxis=list(tickangle = 90),
+           yaxis=list(title='Number of observed OTUs'),
+           margin = list(l=50,r=50,b=100,t=50),
+           showlegend = FALSE)
+  p2 <- plot_ly(r, y = ~Shannon, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5,colors = col_vec) %>%
+    layout(title = plot_name,
+           #xaxis=list(tickangle = -45),
+           yaxis=list(title='Shannon diversity index'),
+           margin = list(l=50,r=50,b=100,t=50),
+           showlegend = FALSE)
+  p_matrix = matrix(ncol = length(groups), nrow = length(groups))
+  for (n1 in 1:(length(groups)-1)) {
+    print(n1)
+    for (n2 in (n1+1):length(groups)) {
+      group1 = groups[n1]
+      group2 = groups[n2]
+      print(paste0('group1 ',group1))
+      print(paste0('group2 ',group2))
+      vec1 = r$Shannon[which(r$type==group1)]
+      vec2 = r$Shannon[which(r$type==group2)]
+      wilcox_shannon = wilcox.test(vec1,vec2)
+      p_matrix[n1,n2] <- wilcox_shannon$p.value
+      p_matrix[n2,n1] <- wilcox_shannon$p.value
+    }
+    
+  }
+  kruskal_Observed = kruskal.test(r$Observed,r$type)
+  kruskal_Shannon = kruskal.test(r$Shannon,r$type)
+  p_df = as.data.frame(p_matrix)
+  rownames(p_df) = groups
+  colnames(p_df) = groups
+  return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value,p_df)
+  print(col_vec)
+  return(return_list)
+}
 
 check_counts <- function(po) {
   print("Number of sequences found in samples")
