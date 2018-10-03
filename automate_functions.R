@@ -417,69 +417,14 @@ alphadiversity_plot <- function(po,plot_name) {
   return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value)
   return(return_list)
 }
-              
-make_alphadiversity_object <- function(po,variable_name,plot_name,color_list) {
-  if (length(col_vec) == length(levels(factor(get_variable(po,variable_name))))) {
-    col_vec = color_list
-  } else {
-    col_vec = RColorBrewer::brewer.pal(length(levels(factor(get_variable(po)$sample_groups))),"Set1")
-    print(paste0('Number of colors given ', length(col_vec) , 'does not match number of levels in variable ', length(levels(factor(get_variable(po)$variable_name)))))
-  }
-  r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
-  p1 <- plot_ly(r, y = ~Observed, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
-    layout(title = plot_name,
-           #xaxis=list(tickangle = 90),
-           yaxis=list(title='Number of observed OTUs'),
-           margin = list(l=50,r=50,b=100,t=50),
-           showlegend = FALSE)
-  p2 <- plot_ly(r, y = ~Shannon, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5,colors = col_vec) %>%
-    layout(title = plot_name,
-           #xaxis=list(tickangle = -45),
-           yaxis=list(title='Shannon diversity index'),
-           margin = list(l=50,r=50,b=100,t=50),
-           showlegend = FALSE)
-  kruskal_Observed = kruskal.test(r$Observed,r$type)
-  kruskal_Shannon = kruskal.test(r$Shannon,r$type)
-  return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value)
-  return(return_list)
-}
 
-set_api_key <- function() {
-  Sys.setenv("plotly_username"="thej-ssi")
-  Sys.setenv("plotly_api_key"="gFKgrgfaQjKs1GanZdA7")
-}
-
-make_PCOA_plot <- function(po,plotname) {
-  ord <- ordinate(po, method = "PCoA", distance = "bray")
-  groups = levels(sample_data(po)$sample_groups)
-  if (length(groups) <= 9) {
-    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
-    p = plot_ordination(po,ord, color="sample_groups", title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
-  } else {
-    p = plot_ordination(po,ord, color="sample_groups", title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
-  }
-  anosim_test = anosim(t(otu_table(po)),grouping = as.factor(sample_data(po)$sample_groups))
-  returnlist = list(p,anosim_test$statistic,anosim_test$signif)
-  return(returnlist)	
-}
-
-check_counts_both <- function(po_prokaryot,po_eukaryot) {
-  print("Number of prokaryot sequences found in samples")
-  print(sort(colSums(otu_table(po_prokaryot))))
-  plot(sort(colSums(otu_table(po_prokaryot))),main = "Number of prokaryot sequences found in samples")
-  print("Number of eukaryot sequences found in samples")
-  print(sort(colSums(otu_table(po_eukaryot))))
-  plot(sort(colSums(otu_table(po_eukaryot))),main = "Number of eukaryot sequences found in samples")
-}
-              
-              
 make_alphadiversity_object <- function(po,variable_name,plot_name,color_list) {
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(color_list) == length(groups)) {
     col_vec = color_list
   } else {
     col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
-    print(paste0('Number of colors given (', length(col_vec) , ') does not match number of levels in variable (', length(groups),')'))
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
   }
   r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
   p1 <- plot_ly(r, y = ~Observed, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
@@ -519,6 +464,55 @@ make_alphadiversity_object <- function(po,variable_name,plot_name,color_list) {
   print(col_vec)
   return(return_list)
 }
+
+set_api_key <- function() {
+  Sys.setenv("plotly_username"="thej-ssi")
+  Sys.setenv("plotly_api_key"="gFKgrgfaQjKs1GanZdA7")
+}
+
+make_PCOA_plot <- function(po,plotname) {
+  ord <- ordinate(po, method = "PCoA", distance = "bray")
+  groups = levels(sample_data(po)$sample_groups)
+  if (length(groups) <= 9) {
+    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+    p = plot_ordination(po,ord, color="sample_groups", title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
+  } else {
+    p = plot_ordination(po,ord, color="sample_groups", title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
+  }
+  anosim_test = anosim(t(otu_table(po)),grouping = as.factor(sample_data(po)$sample_groups))
+  returnlist = list(p,anosim_test$statistic,anosim_test$signif)
+  return(returnlist)	
+}
+
+make_PCoA_object <- function(po,variable_name,plotname,color_list) {
+  ord <- ordinate(po, method = "PCoA", distance = "bray")
+  groups = levels(factor(get_variable(po,variable_name)))
+  if (length(groups) == length(color_list)) {
+    col_vec = color_list
+    p = plot_ordination(po,ord, color=variable_name, title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
+  } else if (length(groups) <= 9) {
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+    p = plot_ordination(po,ord, color=variable_name, title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
+  } else {
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+    p = plot_ordination(po,ord, color=variable_name, title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
+  }
+  anosim_test = anosim(t(otu_table(po)),grouping = factor(as.character(get_variable(po,variable_name))))
+  
+  returnlist = list(p,anosim_test$statistic,anosim_test$signif)
+  return(returnlist)	
+}
+check_counts_both <- function(po_prokaryot,po_eukaryot) {
+  print("Number of prokaryot sequences found in samples")
+  print(sort(colSums(otu_table(po_prokaryot))))
+  plot(sort(colSums(otu_table(po_prokaryot))),main = "Number of prokaryot sequences found in samples")
+  print("Number of eukaryot sequences found in samples")
+  print(sort(colSums(otu_table(po_eukaryot))))
+  plot(sort(colSums(otu_table(po_eukaryot))),main = "Number of eukaryot sequences found in samples")
+}
+              
+
 
 check_counts <- function(po) {
   print("Number of sequences found in samples")
