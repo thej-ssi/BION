@@ -759,7 +759,12 @@ make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,colo
   }
 }
 
-
+test_color_tile <- function(color_vec) {
+  values = rep(1,length(color_vec))
+  p <- plot_ly(type = "bar", x = color_vec, y = values, name = color_vec, color = color_vec, colors = color_vec)
+  return(p)
+}
+              
 run_all <- function(rare_prokaryot,rare_eukaryot,rare_fungi,summary_list) {
   ### Setup directory for plots and tables ###
   output_dir = setup_outdir()
