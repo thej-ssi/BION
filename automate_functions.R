@@ -761,7 +761,8 @@ make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,colo
 
 test_color_tile <- function(color_vec) {
   values = rep(1,length(color_vec))
-  p <- plot_ly(type = "bar", x = color_vec, y = values, name = color_vec, color = color_vec, colors = color_vec)
+  col_vec = factor(color_vec,levels=c(as.character(color_vec)))
+  p <- plot_ly(type = "bar", x = col_vec, y = ~values, name = col_vec, color = col_vec, colors = color_vec)
   return(p)
 }
               
