@@ -759,6 +759,91 @@ make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,colo
   }
 }
 
+make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
+  d = otu_table(po)
+  tax = tax_table(po)
+  variable_vector = as.vector(get_variable(po,variable_name))
+  groups = unique(variable_vector)
+  variable_count = length(groups)
+  p_mat = tax
+  if (variable_count < 2) {
+    print("Less than two types found in designated variable")
+  } else if (variable_count == 2) {
+    mean_headers = c('mean, all')
+    group_means = cbind(apply(d,1, function(e) mean(as.numeric(e))))
+    for (group in groups) {
+      group_mean = apply(d,1, function(e) mean(as.numeric(e[which(variable_vector == group)])))
+      group_means = cbind(group_means,group_mean)
+      mean_headers = c(mean_headers,paste0('mean, ',group))
+    }
+    MWU_tests = apply(d,1, function(e) wilcox.test(as.numeric(e[which(variable_vector == groups[1])]),as.numeric(e[which(variable_vector == groups[2])]))$p.value)
+    MWU_corrected = p.adjust(MWU_tests,method = p_adjust_method)
+    mwu_headers = c('p','p adjusted')
+    p_mat = cbind(p_mat,MWU_tests,MWU_corrected)
+  } else {
+    mean_headers = c('mean, all')
+    group_means = cbind(apply(d,1, function(e) mean(as.numeric(e))))
+    for (group in groups) {
+      group_mean = apply(d,1, function(e) mean(as.numeric(e[which(variable_vector == group)])))
+      group_means = cbind(group_means,group_mean)
+      mean_headers = c(mean_headers,paste0('mean, ',group))
+    }
+    mwu_headers = c()
+    for (n1 in 1:(length(groups)-1)) {
+      group1 = groups[n1]
+      for (n2 in (n1+1):length(groups)) {
+        group2 = groups[n2]
+        MWU_tests = apply(d,1, function(e) wilcox.test(as.numeric(e[which(variable_vector == group1)]),as.numeric(e[which(variable_vector == group2)]))$p.value)
+        MWU_corrected = p.adjust(MWU_tests,method = p_adjust_method)
+        mwu_header = paste0('p, ',group1,' v ',group2)
+        mwu_corrected_header = paste0('p adjusted, ',group1,' v ',group2)
+        mwu_headers = c(mwu_headers,mwu_header,mwu_corrected_header)
+        p_mat = cbind(p_mat,MWU_tests,MWU_corrected)
+      }
+    }
+  }
+  return_df = as.data.frame(cbind(p_mat,group_means))
+  colnames(return_df) = c(colnames(tax),mwu_headers,mean_headers)
+  rownames(return_df) = rownames(tax)
+  return(return_df)
+}
+
+
+make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name,color_list) {
+  variable_vector = as.vector(get_variable(po,variable_name))
+  groups = unique(variable_vector)
+  d = as.vector(otu_table(po)[OTU,])
+  tax_vector = as.vector(tax_table(po)[OTU,])
+  if (!is.na(tax_vector[7])) {
+    newname = paste0(tax_vector[6],' ',tax_vector[7])
+  } else if (!is.na(tax_vector[6]) & !tax_vector[6]=="unclassified") {
+    newname = tax_vector[6]
+  } else if (!is.na(tax_vector[5]) & !tax_vector[5]=="unclassified") {
+    newname = tax_vector[5]
+  } else if (!is.na(tax_vector[4]) & !tax_vector[4]=="unclassified") {
+    newname = tax_vector[4]
+  } else if (!is.na(tax_vector[3]) & !tax_vector[3]=="unclassified") {
+    newname = tax_vector[3]
+  } else {
+    newname = tax_vector[2]
+  }
+  if (length(groups) == length(color_list)) {
+    col_vec = color_list
+    } else if (length(groups) <= 9) {
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+  } else {
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+  }
+  p <- plot_ly(y = d, color = variable_vector, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
+    layout(title = plot_name,
+           #xaxis=list(tickangle = 90),
+           yaxis=list(title=paste0(newname, ' rarefied sequence counts')),
+           margin = list(l=50,r=50,b=100,t=50),
+           showlegend = FALSE)
+}
+
+
 test_color_tile <- function(color_vec) {
   values = rep(1,length(color_vec))
   col_vec = factor(color_vec,levels=c(as.character(color_vec)))
