@@ -795,7 +795,7 @@ make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,colo
               #main = "Heatmap showing relative abundance of top 10 genera across all samples",
               key.title = "")
               #lwid = 2)
-    return(list(p,fit)
+    return(list(p,fit))
   }
 }
 
