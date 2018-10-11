@@ -141,6 +141,46 @@ collapse_Aspergillaceae <- function(tax_table,otu_table) {
   return_list = list(tax_table,otu_table)
 }
 
+remove_duplicates_from_phylo_object <- function(po) {
+  d = otu_table(po)
+  tax = tax_table(po)
+  new_d = matrix(nrow=0,ncol = ncol(d))
+  new_tax = matrix(nrow=0,ncol = ncol(tax))
+  otu_vec = c()
+  all_tax_strings = c()
+  for (row in 1:nrow(tax)) {
+    tax_vec = c()
+    for (col in 1:ncol(tax)) {
+      old_tax_pos = as.character(tax[row,col])
+      if (grepl('%',old_tax_pos)) {
+        tax_vec = c(tax_vec,'NA')
+      } else if (grepl('\\(',old_tax_pos)) {
+        new_tax_pos = substr(old_tax_pos,2,(nchar(old_tax_pos)-1))
+        #print(new_tax_pos)
+        tax_vec = c(tax_vec,new_tax_pos)
+        #print(tax_vec)
+        
+      } else {
+        tax_vec = c(tax_vec,tax[row,col])
+      }
+    }
+    tax_string = paste(tax_vec, collapse = '|')
+    pos = match(tax_string, all_tax_strings)
+    if (!is.na(pos)) {
+      new_d[pos,] = new_d[pos,]+d[row,]
+    } else {
+      new_d = rbind(new_d,d[row,])
+      new_tax = rbind(new_tax,tax_vec)
+      otu_vec = c(otu_vec,rownames(tax)[row])
+      all_tax_strings = c(all_tax_strings,tax_string)
+    }
+  }
+  rownames(new_d) = otu_vec
+  rownames(new_tax) = otu_vec
+  return_po = phyloseq(tax_table(new_tax),otu_table(new_d,taxa_are_rows = TRUE),sample_data(sample_data(po)))
+  
+}
+
 
 ### Set up two phyloseq objects, one for prokaryot and one for eukaryot species ###
 setup_phylo_object <- function(tsv_input,metadata) {
