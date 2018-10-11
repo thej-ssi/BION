@@ -533,16 +533,18 @@ make_PCoA_object <- function(po,variable_name,plotname,color_list) {
   } else if (length(groups) <= 9) {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
     col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
-    p = plot_ordination(po,ord, color=variable_name, title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
+    p = plot_ordination(po,ord, color=as.character(variable_name), title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
   } else {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-    p = plot_ordination(po,ord, color=variable_name, title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
+    p = plot_ordination(po,ord, color=as.character(variable_name), title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
   }
   anosim_test = anosim(t(otu_table(po)),grouping = factor(as.character(get_variable(po,variable_name))))
   
   returnlist = list(p,anosim_test$statistic,anosim_test$signif)
   return(returnlist)	
 }
+              
+              
 check_counts_both <- function(po_prokaryot,po_eukaryot) {
   print("Number of prokaryot sequences found in samples")
   print(sort(colSums(otu_table(po_prokaryot))))
