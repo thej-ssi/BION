@@ -705,6 +705,7 @@ top_taxa_heatmap <- function(po,top_10_taxa,filename) {
             labCol = F)
 }
 
+
 make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,color_vector) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
@@ -796,11 +797,17 @@ make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,colo
               ColSideColors = col_vec,
               #main = "Heatmap showing relative abundance of top 10 genera across all samples",
               key.title = "")
-              #lwid = 2)
-    return(list(p,fit))
+    #lwid = 2)
+    r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Shannon")))
+    r_ordered = r[order(fit$order),]
+    r_ordered$ID = factor(r_ordered$ID,levels = r_ordered$ID)
+    p2 <- plot_ly(type = "bar", data = r_ordered, x = ~ID, y = ~Shannon, color = I("#555555")) %>%
+      layout(xaxis= list(showticklabels = FALSE))
+    return(list(p,p2,fit))
   }
 }
 
+              
 make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
   d = otu_table(po)
   tax = tax_table(po)
