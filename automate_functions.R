@@ -892,7 +892,15 @@ test_color_tile <- function(color_vec) {
   p <- plot_ly(type = "bar", x = col_vec, y = ~values, name = col_vec, color = col_vec, colors = color_vec)
   return(p)
 }
-              
+
+make_legend_color <- function(po,variable_name,color_list) {
+  groups = levels(factor(as.character(get_variable(po,variable_name))))
+  values = rep(1,length(groups))
+  p <- plot_ly(type = "bar", x = groups, y = values, name = groups, color = groups, colors = color_list)
+  return(p)
+}
+
+ 
 run_all <- function(rare_prokaryot,rare_eukaryot,rare_fungi,summary_list) {
   ### Setup directory for plots and tables ###
   output_dir = setup_outdir()
