@@ -903,7 +903,19 @@ test_color_tile <- function(color_vec) {
 make_legend_color <- function(po,variable_name,color_list) {
   groups = levels(factor(as.character(get_variable(po,variable_name))))
   values = rep(1,length(groups))
-  p <- plot_ly(type = "bar", x = groups, y = values, name = groups, color = groups, colors = color_list)
+  variable_n = length(groups)
+  if (missing(color_list) | !length(color_list)==variable_n) {
+    if (variable_n < 10) {
+      Rcol_vec = RColorBrewer::brewer.pal(variable_n,"Set1")
+    } else if (variable_n < 13) {
+      Rcol_vec = RColorBrewer::brewer.pal(variable_n,"Set3")
+    } else {
+      Rcol_vec = grDevices::rainbow(variable_n)
+    }
+  } else {
+    Rcol_vec = color_list
+  }
+  p <- plot_ly(type = "bar", x = groups, y = values, name = groups, color = groups, colors = Rcol_vec)
   return(p)
 }
 
