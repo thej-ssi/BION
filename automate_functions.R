@@ -706,13 +706,13 @@ top_taxa_heatmap <- function(po,top_10_taxa,filename) {
 }
 
 
-make_barplot_with_tiles <- function(po,top_10_taxa,split_variable,plot_name,color_vector) {
+make_barplot_with_tiles <- function(po,top_10_taxa,variable_name,plot_name,color_vector) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
     dd<-otu_table(po)
     dd<-apply(dd, 2, function(x) x/sum(x)*100)
     dd<-as.data.frame(dd)
-    split_variable_vector = get_variable(po,split_variable)
+    split_variable_vector = get_variable(po,variable_name)
     dd$sum<-apply(dd, 1, sum)
     dd_sorted<-dd[dd$sum>0,]
     dd_sorted<-dd_sorted[,-ncol(dd_sorted)]
