@@ -913,7 +913,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
     }
   }
   return_df = as.data.frame(cbind(rep(1:nrow(p_mat)),p_mat,group_means))
-  colnames(return_df) = c(colnames(tax),mwu_headers,mean_headers)
+  colnames(return_df) = c("Rownumber",colnames(tax),mwu_headers,mean_headers)
   rownames(return_df) = rownames(tax)
   return(return_df)
 }
