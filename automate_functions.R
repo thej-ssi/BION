@@ -808,6 +808,67 @@ make_barplot_with_tiles <- function(po,top_10_taxa,variable_name,plot_name,color
 }
 
               
+make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_list) {
+  group_color_vector = as.vector(get_variable(po,variable_name))
+  groups = levels(factor(group_color_vector))
+  group_count = length(groups)
+  if (length(color_list) == group_count) {
+    group_colors = color_list
+  } else if (group_count<=9) {
+    group_colors = RColorBrewer::brewer.pal(n=length(groups),name="Set1")
+  } else {
+    group_colors = grDevices::rainbow(group_count)
+  }
+  color_table = matrix(ncol=2,nrow=0)
+  for (i in 1:length(groups)) {
+    group_color_vector[group_color_vector==groups[i]] = group_colors[i]
+    color_table= rbind(color_table,c(groups[i],group_colors[i]))
+  }
+  newnames = c()
+  taxmat = tax_table(po)
+  for (i in 1:length(top_10_taxa)) {
+    rownumber = top_10_taxa[i]
+    tax_vector = as.vector(taxmat[rownumber,])
+    if (!is.na(tax_vector[7])) {
+      newname = paste0(tax_vector[6],' ',tax_vector[7])
+    } else if (!is.na(tax_vector[6]) & !tax_vector[6]=="unclassified") {
+      newname = tax_vector[6]
+    } else if (!is.na(tax_vector[5]) & !tax_vector[5]=="unclassified") {
+      newname = tax_vector[5]
+    } else if (!is.na(tax_vector[4]) & !tax_vector[4]=="unclassified") {
+      newname = tax_vector[4]
+    } else if (!is.na(tax_vector[3]) & !tax_vector[3]=="unclassified") {
+      newname = tax_vector[3]
+    } else {
+      newname = tax_vector[2]
+    }
+    newnames = c(newnames,newname)
+  }
+  
+  if (length(top_10_taxa) > 10) {
+    other_sum = colSums(otu_table(po)[-top_10_taxa,])
+    top_10_matrix = rbind(otu_table(po)[top_10_taxa,],other_sum)
+    rownames(top_10_matrix) = c(newnames,"Other")
+  } else {
+    top_10_matrix = otu_table(po)[top_10_taxa,]
+    rownames(top_10_matrix) = newnames
+  }
+  print(group_color_vector)
+  return_object = heatmap.2(top_10_matrix,
+            trace = "none",
+            scale = "row",
+            col = colorspace::diverge_hsv(50),
+            margins = c(5,15),
+            ColSideColors = group_color_vector,
+            #main = "Heatmap showing relative abundance of top 10 genera across all samples",
+            key.title = "",
+            #lwid = 2,
+            labCol = F)
+  print(color_table)
+  return(return_object)
+}
+              
+              
 make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
   d = otu_table(po)
   tax = tax_table(po)
