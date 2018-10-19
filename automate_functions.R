@@ -190,7 +190,7 @@ remove_duplicates_from_phylo_object <- function(po) {
   rownames(new_tax) = otu_vec
   colnames(new_tax) = colnames(tax)
   return_po = phyloseq(tax_table(new_tax),otu_table(new_d,taxa_are_rows = TRUE),sample_data(sample_data(po)))
-  
+  return(po)
 }
 
 
