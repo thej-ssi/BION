@@ -800,7 +800,7 @@ make_barplot_with_tiles <- function(po,top_10_taxa,variable_name,plot_name,color
     #lwid = 2)
     r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Shannon")))
     r_ordered = r[order(fit$order),]
-    r_ordered$ID = factor(r_ordered$ID,levels = r_ordered$ID)
+    r_ordered$ID = factor(r$ID,levels = cluster_order)
     p2 <- plot_ly(type = "bar", data = r_ordered, x = ~ID, y = ~Shannon, color = I("#555555")) %>%
       layout(xaxis= list(showticklabels = FALSE))
     return(list(p,p2,fit))
