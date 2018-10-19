@@ -321,7 +321,7 @@ get_top_n_taxa <- function(po,n) {
   return(top_n_otu)
 }
 
-make_abundance_barplot <- function(po,top_10_taxa,plot_name) {
+make_abundance_barplot <- function(po,taxa,plot_name) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
     dd<-otu_table(po)
@@ -337,8 +337,8 @@ make_abundance_barplot <- function(po,top_10_taxa,plot_name) {
     cluster_order<-fit$labels[fit$order]
     newnames = c()
     top10_otu_table = matrix(nrow=0,ncol=ncol(dd_sorted))
-    for (i in 1:length(top_10_taxa)) {
-      rownumber = top_10_taxa[i]
+    for (i in 1:length(taxa)) {
+      rownumber = taxa[i]
       tax_vector = as.vector(taxmat[rownumber,])
       if (!is.na(tax_vector[7])) {
         newname = paste0(tax_vector[6],' ',tax_vector[7])
