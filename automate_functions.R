@@ -809,7 +809,6 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title,color_vect
               ColSideColors = col_vec,
               #main = "Heatmap showing relative abundance of top 10 genera across all samples",
               key.title = "")
-    #lwid = 2)
     r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Shannon")))
     r_ordered = r[order(fit$order),]
     r_ordered$ID = factor(r$ID,levels = cluster_order)
