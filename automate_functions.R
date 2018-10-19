@@ -470,7 +470,7 @@ alphadiversity_plot <- function(po,plot_name) {
   return(return_list)
 }
 
-make_alphadiversity_object <- function(po,variable_name,plot_name,color_list) {
+make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(color_list) == length(groups)) {
     col_vec = color_list
@@ -486,7 +486,7 @@ make_alphadiversity_object <- function(po,variable_name,plot_name,color_list) {
            margin = list(l=50,r=50,b=100,t=50),
            showlegend = FALSE)
   p2 <- plot_ly(r, y = ~Shannon, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5,colors = col_vec) %>%
-    layout(title = plot_name,
+    layout(title = plot_title,
            #xaxis=list(tickangle = -45),
            yaxis=list(title='Shannon diversity index'),
            margin = list(l=50,r=50,b=100,t=50),
@@ -536,7 +536,7 @@ make_PCOA_plot <- function(po,plotname) {
   return(returnlist)	
 }
 
-make_PCoA_object <- function(po,variable_name,plotname,color_list) {
+make_PCoA_object <- function(po,variable_name,plot_title,color_list) {
   ord <- ordinate(po, method = "PCoA", distance = "bray")
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(groups) == length(color_list)) {
@@ -545,10 +545,10 @@ make_PCoA_object <- function(po,variable_name,plotname,color_list) {
   } else if (length(groups) <= 9) {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
     col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
-    p = plot_ordination(po,ord, color=as.character(variable_name), title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
+    p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
   } else {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-    p = plot_ordination(po,ord, color=as.character(variable_name), title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
+    p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
   }
   anosim_test = anosim(t(otu_table(po)),grouping = factor(as.character(get_variable(po,variable_name))))
   
@@ -718,7 +718,7 @@ top_taxa_heatmap <- function(po,top_10_taxa,filename) {
 }
 
 
-make_barplot_with_tiles <- function(po,top_10_taxa,variable_name,plot_name,color_vector) {
+make_barplot_with_tiles <- function(po,top_10_taxa,variable_name,plot_title,color_vector) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
     dd<-otu_table(po)
@@ -770,7 +770,7 @@ make_barplot_with_tiles <- function(po,top_10_taxa,variable_name,plot_name,color
       add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[3]),], name =rownames(top10)[3]) %>%
       add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[2]),], name =rownames(top10)[2]) %>%
       add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[1]),], name =rownames(top10)[1]) %>%
-      layout(title = plot_name,
+      layout(title = plot_title,
              xaxis=list(title="Sample ID"),
              yaxis=list(title="Abundance (percent of rarefied counts)"),
              barmode = 'stack',
