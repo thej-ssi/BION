@@ -141,6 +141,17 @@ collapse_Aspergillaceae <- function(tax_table,otu_table) {
   return_list = list(tax_table,otu_table)
 }
 
+remove_duplicates_from_phylo_object_2 <- function(po) {
+  tax_string<-tsv_input[,1] # din out tabel, med taxonomy i første kolonne
+  tax_string<-gsub("\\(","",tax_string)
+  tax_string<-gsub("\\)","",tax_string)
+  tsv_input[,1]<-tax_string
+  tsv_input_summed<-ddply(tsv_input, .(Taxonomic.groups), numcolwise(sum))
+}
+
+
+
+
 remove_duplicates_from_phylo_object <- function(po) {
   d = otu_table(po)
   tax = tax_table(po)
@@ -177,7 +188,7 @@ remove_duplicates_from_phylo_object <- function(po) {
   }
   rownames(new_d) = otu_vec
   rownames(new_tax) = otu_vec
-  colnames(new_tax) = colnames(tax
+  colnames(new_tax) = colnames(tax)
   return_po = phyloseq(tax_table(new_tax),otu_table(new_d,taxa_are_rows = TRUE),sample_data(sample_data(po)))
   
 }
