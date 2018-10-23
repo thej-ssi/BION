@@ -480,7 +480,7 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
   }
   r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
   p1 <- plot_ly(r, y = ~Observed, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
-    layout(title = plot_name,
+    layout(title = plot_title,
            #xaxis=list(tickangle = 90),
            yaxis=list(title='Number of observed OTUs'),
            margin = list(l=50,r=50,b=100,t=50),
@@ -536,12 +536,12 @@ make_PCOA_plot <- function(po,plotname) {
   return(returnlist)	
 }
 
-make_PCoA_object <- function(po,variable_name,plot_title,color_list) {
+make_PCoA_object <- function(po,variable_name,plot_title,color_list,perform_anosim = TRUE) {
   ord <- ordinate(po, method = "PCoA", distance = "bray")
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(groups) == length(color_list)) {
     col_vec = color_list
-    p = plot_ordination(po,ord, color=variable_name, title = plotname) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
+    p = plot_ordination(po,ord, color=variable_name, title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
   } else if (length(groups) <= 9) {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
     col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
@@ -550,13 +550,16 @@ make_PCoA_object <- function(po,variable_name,plot_title,color_list) {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
     p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
   }
-  anosim_test = anosim(t(otu_table(po)),grouping = factor(as.character(get_variable(po,variable_name))))
-  
-  returnlist = list(p,anosim_test$statistic,anosim_test$signif)
+  if (perform_anosim) {
+    anosim_test = anosim(t(otu_table(po)),grouping = factor(as.character(get_variable(po,variable_name))))
+    returnlist = list(p,anosim_test,anosim_test$statistic,anosim_test$signif)
+  } else {
+    returnlist = list(p)
+  }
   return(returnlist)	
 }
-              
-              
+
+
 check_counts_both <- function(po_prokaryot,po_eukaryot) {
   print("Number of prokaryot sequences found in samples")
   print(sort(colSums(otu_table(po_prokaryot))))
@@ -565,7 +568,7 @@ check_counts_both <- function(po_prokaryot,po_eukaryot) {
   print(sort(colSums(otu_table(po_eukaryot))))
   plot(sort(colSums(otu_table(po_eukaryot))),main = "Number of eukaryot sequences found in samples")
 }
-              
+
 
 
 check_counts <- function(po) {
@@ -797,7 +800,6 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title,color_vect
     for (i in 1:length(Rcol_vec)) {
       col_vec = replace(col_vec,col_vec==variable_levels[i],Rcol_vec[i])
     }
-    print(col_vec)
     heatmap.2(heatmap_data,
               Rowv = FALSE,
               Colv = FALSE,
@@ -818,7 +820,7 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title,color_vect
   }
 }
 
-              
+
 make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_list) {
   group_color_vector = as.vector(get_variable(po,variable_name))
   groups = levels(factor(group_color_vector))
@@ -866,20 +868,20 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_li
   }
   print(group_color_vector)
   return_object = heatmap.2(top_10_matrix,
-            trace = "none",
-            scale = "row",
-            col = colorspace::diverge_hsv(50),
-            margins = c(5,15),
-            ColSideColors = group_color_vector,
-            #main = "Heatmap showing relative abundance of top 10 genera across all samples",
-            key.title = "",
-            #lwid = 2,
-            labCol = F)
+                            trace = "none",
+                            scale = "row",
+                            col = colorspace::diverge_hsv(50),
+                            margins = c(5,15),
+                            ColSideColors = group_color_vector,
+                            #main = "Heatmap showing relative abundance of top 10 genera across all samples",
+                            key.title = "",
+                            #lwid = 2,
+                            labCol = F)
   print(color_table)
   return(return_object)
 }
-              
-              
+
+
 make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
   d = otu_table(po)
   tax = tax_table(po)
@@ -900,7 +902,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
     MWU_tests = apply(d,1, function(e) wilcox.test(as.numeric(e[which(variable_vector == groups[1])]),as.numeric(e[which(variable_vector == groups[2])]))$p.value)
     MWU_corrected = p.adjust(MWU_tests,method = p_adjust_method)
     mwu_headers = c('p','p adjusted')
-    p_mat = cbind(p_mat,MWU_tests,MWU_corrected)
+    p_mat = cbind(p_mat,as.numeric(MWU_tests),as.numeric(MWU_corrected))
   } else {
     mean_headers = c('mean, all')
     group_means = cbind(apply(d,1, function(e) mean(as.numeric(e))))
@@ -919,11 +921,12 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
         mwu_header = paste0('p, ',group1,' v ',group2)
         mwu_corrected_header = paste0('p adjusted, ',group1,' v ',group2)
         mwu_headers = c(mwu_headers,mwu_header,mwu_corrected_header)
-        p_mat = cbind(p_mat,MWU_tests,MWU_corrected)
+        p_mat = cbind(p_mat,as.numeric(MWU_tests),as.numeric(MWU_corrected))
       }
     }
   }
   return_df = as.data.frame(cbind(rep(1:nrow(p_mat)),p_mat,group_means))
+  #apply(return_df[,9:ncol(return_df)],2, function(e) as.numeric(e))
   colnames(return_df) = c("Rownumber",colnames(tax),mwu_headers,mean_headers)
   rownames(return_df) = rownames(tax)
   return(return_df)
@@ -950,7 +953,7 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name,color_list) {
   }
   if (length(groups) == length(color_list)) {
     col_vec = color_list
-    } else if (length(groups) <= 9) {
+  } else if (length(groups) <= 9) {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
     col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
   } else {
@@ -991,7 +994,54 @@ make_legend_color <- function(po,variable_name,color_list) {
   return(p)
 }
 
- 
+
+setup_color_vector <- function(po,variable_name,color_list) {
+  group_color_vector = as.vector(get_variable(po,variable_name))
+  groups = levels(factor(group_color_vector))
+  group_count = length(groups)
+  if (length(color_list) == group_count) {
+    group_colors = color_list
+  } else if (group_count<=9) {
+    group_colors = RColorBrewer::brewer.pal(n=length(groups),name="Set1")
+  } else {
+    group_colors = grDevices::rainbow(group_count)
+  }
+  color_table = matrix(ncol=2,nrow=0)
+  for (i in 1:length(groups)) {
+    group_color_vector[group_color_vector==groups[i]] = group_colors[i]
+    color_table= rbind(color_table,c(groups[i],group_colors[i]))
+  }
+  return(list(group_colors,color_table))
+}
+
+run_cross_sectional_analysis <- function(po, variable_name, color_list) {
+  sample_data(po)$Group = as.character(as.vector(get_variable(po,variable_name)))
+  color_output = setup_color_vector(po,"Group",color_list)
+  color_vector = color_output[[1]]
+  
+  Alphadiv_plot = make_alphadiversity_object(po,variable_name = "Group",plot_title = paste0("Alpha diversity of ",variable_name),color_vector)
+  Alphadiv_plot
+  
+  PCoA_plot = make_PCoA_object(po,variable_name = "Group",plot_title = paste0("Principal coordinate analysis of ",variable_name),color_vector)
+  PCoA_plot
+  
+  top10_taxa = get_top_n_taxa(po,10)
+  
+  bar_plot = make_abundance_barplot(po,taxa = top10_taxa, "Top 10 most abundant species")
+  bar_plot
+  make_barplot_plus_object(po,top10_taxa,"Group","Top 10 most abundant species",color_vector)
+
+  Heatmap = make_heatmap_object(po,get_top_n_taxa(po,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
+  Heatmap
+
+  taxa_comparison_df = make_taxa_comparison_object(po,"Group","bonferroni")
+  
+  return(list(Alphadiv_plot,PCoA_plot,bar_plot,Heatmap,taxa_comparison_df))
+}
+
+
+
+
 run_all <- function(rare_prokaryot,rare_eukaryot,rare_fungi,summary_list) {
   ### Setup directory for plots and tables ###
   output_dir = setup_outdir()
