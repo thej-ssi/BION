@@ -905,12 +905,10 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_li
   return(return_object)
 }
 
-
 make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
   color_vector = setup_color_vector(po,variable_name,color_list)[[1]]
   otu = otu_table(po)[taxa,]
   tax_vector = get_taxa_names(po,taxa)
-  tax_vector = taxa
   print(taxa)
   variable_vector = as.vector(get_variable(po,variable_name))
   data = rbind(otu,variable_vector)
@@ -928,6 +926,7 @@ make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
   p
   return(list(p,data,data2))
 }
+
 
 make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
   d = otu_table(po)
