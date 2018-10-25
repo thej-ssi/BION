@@ -919,7 +919,7 @@ make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
     geom_violin() + 
     coord_flip() +
     scale_y_log10() +
-    scale_fill_manual(variable_name,values = RColorBrewer::brewer.pal(9,"Set1")[c(1,3)]) +
+    scale_fill_manual(variable_name,values = color_list) +
     labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
   p
   return(p)
