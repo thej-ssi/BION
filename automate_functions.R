@@ -906,6 +906,7 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_li
 }
 
 make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
+  color_vector = setup_color_vector(po,variable_name,color_list)[[1]]
   otu = otu_table(po)[taxa,]
   tax_vector = get_taxa_names(po,taxa)
   variable_vector = get_variable(po,variable_name)
@@ -915,11 +916,12 @@ make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
   colnames(data) = c(tax_vector,"Group")
   data2 = melt.data.frame(data,id.vars = "Group")
   data2$value = as.numeric(data2$value)
+  print(color_vector)
   p <- ggplot(data2[which(!is.na(data2$value) & !is.na(data2$Group)),], aes(x=variable, y=value, fill = Group)) + 
     geom_violin() + 
     coord_flip() +
     scale_y_log10() +
-    scale_fill_manual(variable_name,values = color_list) +
+    scale_fill_manual(variable_name,values = color_vector) +
     labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
   p
   return(p)
