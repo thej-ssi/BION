@@ -321,6 +321,30 @@ get_top_n_taxa <- function(po,n) {
   return(top_n_otu)
 }
 
+get_taxa_names <- function(po,taxa) {
+  taxmat = tax_table(po)
+  newnames = c()
+  for (i in 1:length(taxa)) {
+    rownumber = taxa[i]
+    tax_vector = as.vector(taxmat[rownumber,])
+    if (!is.na(tax_vector[7])) {
+      newname = paste0(tax_vector[6],' ',tax_vector[7])
+    } else if (!is.na(tax_vector[6]) & !tax_vector[6]=="unclassified") {
+      newname = tax_vector[6]
+    } else if (!is.na(tax_vector[5]) & !tax_vector[5]=="unclassified") {
+      newname = tax_vector[5]
+    } else if (!is.na(tax_vector[4]) & !tax_vector[4]=="unclassified") {
+      newname = tax_vector[4]
+    } else if (!is.na(tax_vector[3]) & !tax_vector[3]=="unclassified") {
+      newname = tax_vector[3]
+    } else {
+      newname = tax_vector[2]
+    }
+    newnames = c(newnames,newname)
+  }
+  return(newnames)
+}
+
 make_abundance_barplot <- function(po,taxa,plot_name) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
