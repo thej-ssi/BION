@@ -905,6 +905,25 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_li
   return(return_object)
 }
 
+make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
+  otu = otu_table(po)[taxa,]
+  tax_vector = get_taxa_names(po,taxa)
+  variable_vector = get_variable(po,variable_name)
+  data = rbind(otu,variable_vector)
+  data = as.data.frame(t(data))
+  len = ncol(data)
+  colnames(data) = c(tax_vector,"Group")
+  data2 = melt.data.frame(data,id.vars = "Group")
+  data2$value = as.numeric(data2$value)
+  p <- ggplot(data2[which(!is.na(data2$value) & !is.na(data2$Group)),], aes(x=variable, y=value, fill = Group)) + 
+    geom_violin() + 
+    coord_flip() +
+    scale_y_log10() +
+    scale_fill_manual(variable_name,values = RColorBrewer::brewer.pal(9,"Set1")[c(1,3)]) +
+    labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
+  p
+  return(p)
+}
 
 make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
   d = otu_table(po)
