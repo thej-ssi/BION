@@ -1048,7 +1048,9 @@ setup_color_vector <- function(po,variable_name,color_list) {
   if (length(color_list) == group_count) {
     group_colors = color_list
   } else if (group_count<=9) {
-    group_colors = RColorBrewer::brewer.pal(n=length(groups),name="Set1")
+    group_colors = RColorBrewer::brewer.pal(9,name="Set1")[group_count]
+  } else if (group_count<=12) {
+    group_colors = RColorBrewer::brewer.pal(9,name="Set3")[group_count]
   } else {
     group_colors = grDevices::rainbow(group_count)
   }
