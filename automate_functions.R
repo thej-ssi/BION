@@ -905,24 +905,22 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_li
   return(return_object)
 }
 
+
 make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
   color_vector = setup_color_vector(po,variable_name,color_list)[[1]]
-  print(color_vector)
   otu = otu_table(po)[taxa,]
   tax_vector = get_taxa_names(po,taxa)
-  print(taxa)
   variable_vector = as.vector(get_variable(po,variable_name))
   data = rbind(otu,variable_vector)
   data = as.data.frame(t(data))
   colnames(data) = c(tax_vector,"Group")
   data2 = melt.data.frame(data,id.vars = "Group")
   data2$value = as.numeric(as.vector(data2$value))
-  print(color_vector)
   p <- ggplot(data2, aes(x=variable, y=value, fill = Group)) + 
     geom_violin() + 
     coord_flip() +
     scale_y_log10() +
-    scale_fill_manual(variable_name,values = color_vector) +
+    scale_fill_manual(values = color_vector) +
     labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
   p
   return(list(p,data,data2))
@@ -1049,9 +1047,9 @@ setup_color_vector <- function(po,variable_name,color_list) {
   if (length(color_list) == group_count) {
     group_colors = color_list
   } else if (group_count<=9) {
-    group_colors = RColorBrewer::brewer.pal(9,name="Set1")[group_count]
+    group_colors = RColorBrewer::brewer.pal(9,name="Set1")[1:group_count]
   } else if (group_count<=12) {
-    group_colors = RColorBrewer::brewer.pal(12,name="Set3")[group_count]
+    group_colors = RColorBrewer::brewer.pal(12,name="Set3")[1:group_count]
   } else {
     group_colors = grDevices::rainbow(group_count)
   }
