@@ -1027,9 +1027,9 @@ make_legend_color <- function(po,variable_name,color_list) {
   variable_n = length(groups)
   if (missing(color_list) | !length(color_list)==variable_n) {
     if (variable_n < 10) {
-      Rcol_vec = RColorBrewer::brewer.pal(variable_n,"Set1")
+      Rcol_vec = RColorBrewer::brewer.pal(9,"Set1")[variable_n]
     } else if (variable_n < 13) {
-      Rcol_vec = RColorBrewer::brewer.pal(variable_n,"Set3")
+      Rcol_vec = RColorBrewer::brewer.pal(12,"Set3")[variable_n]
     } else {
       Rcol_vec = grDevices::rainbow(variable_n)
     }
