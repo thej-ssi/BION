@@ -745,7 +745,7 @@ top_taxa_heatmap <- function(po,top_10_taxa,filename) {
 }
 
 
-make_barplot_plus_object <- function(po,taxa,variable_name,plot_title,color_vector) {
+make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_vector=c()) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
     dd<-otu_table(po)
@@ -906,7 +906,8 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_li
 }
 
 
-make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
+
+make_violin_object <- function(po,variable_name,taxa,plot_title="",color_list=c(),level_list=c()) {
   color_vector = setup_color_vector(po,variable_name,color_list)[[1]]
   otu = otu_table(po)[taxa,]
   tax_vector = get_taxa_names(po,taxa)
@@ -916,18 +917,28 @@ make_violin_object <- function(po,variable_name,taxa,plot_title,color_list) {
   colnames(data) = c(tax_vector,"Group")
   data2 = melt.data.frame(data,id.vars = "Group")
   data2$value = as.numeric(as.vector(data2$value))
-  p <- ggplot(data2, aes(x=variable, y=value, fill = Group)) + 
-    geom_violin() + 
-    coord_flip() +
-    scale_y_log10() +
-    scale_fill_manual(values = color_vector) +
-    labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
-  p
+  if (!missing(level_list) & length(level_list)==length(levels(factor(data2$Group)))) {
+    p <- ggplot(data2, aes(x=variable, y=value, fill = factor(Group,levels = level_list))) + 
+      geom_violin() + 
+      coord_flip() +
+      scale_y_log10() +
+      scale_fill_manual(values = color_vector,name = variable_name) +
+      labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
+    p
+  } else {
+    p <- ggplot(data2, aes(x=variable, y=value, fill = Group)) + 
+      geom_violin() + 
+      coord_flip() +
+      scale_y_log10() +
+      scale_fill_manual(values = color_vector,name = variable_name) +
+      labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
+    p
+  }
+
   return(list(p,data,data2))
 }
 
-
-make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
+make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonferroni") {
   d = otu_table(po)
   tax = tax_table(po)
   variable_vector = as.vector(get_variable(po,variable_name))
@@ -978,7 +989,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method) {
 }
 
 
-make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name,color_list) {
+make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list=c()) {
   variable_vector = as.vector(get_variable(po,variable_name))
   groups = unique(variable_vector)
   d = as.vector(otu_table(po)[OTU,])
