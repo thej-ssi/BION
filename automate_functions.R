@@ -1049,7 +1049,7 @@ make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="",color_li
   } else {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
   }
-  p <- plot_ly(y = d, color = variable_vector, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
+  p <- plot_ly(y = d, color = variable_factor, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
     layout(title = plot_name,
            #xaxis=list(tickangle = 90),
            yaxis=list(title=paste0(newname, ' rarefied sequence counts')),
