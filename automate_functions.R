@@ -1023,6 +1023,41 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
            showlegend = FALSE)
 }
 
+make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="",color_list=c()) {
+  variable_factor = get_variable(po,variable_name)
+  groups = levels(variable_factor)
+  d = as.vector(otu_table(po)[OTU,])
+  tax_vector = as.vector(tax_table(po)[OTU,])
+  if (!is.na(tax_vector[7])) {
+    newname = paste0(tax_vector[6],' ',tax_vector[7])
+  } else if (!is.na(tax_vector[6]) & !tax_vector[6]=="unclassified") {
+    newname = tax_vector[6]
+  } else if (!is.na(tax_vector[5]) & !tax_vector[5]=="unclassified") {
+    newname = tax_vector[5]
+  } else if (!is.na(tax_vector[4]) & !tax_vector[4]=="unclassified") {
+    newname = tax_vector[4]
+  } else if (!is.na(tax_vector[3]) & !tax_vector[3]=="unclassified") {
+    newname = tax_vector[3]
+  } else {
+    newname = tax_vector[2]
+  }
+  if (length(groups) == length(color_list)) {
+    col_vec = color_list
+  } else if (length(groups) <= 9) {
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+  } else {
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+  }
+  p <- plot_ly(y = d, color = variable_vector, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
+    layout(title = plot_name,
+           #xaxis=list(tickangle = 90),
+           yaxis=list(title=paste0(newname, ' rarefied sequence counts')),
+           margin = list(l=50,r=50,b=100,t=50),
+           showlegend = FALSE)
+}
+                          
+                          
 
 test_color_tile <- function(color_vec) {
   values = rep(1,length(color_vec))
