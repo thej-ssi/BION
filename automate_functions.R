@@ -1007,14 +1007,7 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
   } else {
     newname = tax_vector[2]
   }
-  if (length(groups) == length(color_list)) {
-    col_vec = color_list
-  } else if (length(groups) <= 9) {
-    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
-  } else {
-    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-  }
+  col_vec = setup_color_vector(po,variable_name,color_list)[[1]]
   p <- plot_ly(y = d, color = variable_vector, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
     layout(title = plot_name,
            #xaxis=list(tickangle = 90),
@@ -1022,7 +1015,6 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
            margin = list(l=50,r=50,b=100,t=50),
            showlegend = FALSE)
 }
-
 make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="",color_list=c()) {
   variable_factor = get_variable(po,variable_name)
   groups = levels(variable_factor)
@@ -1041,14 +1033,7 @@ make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="",color_li
   } else {
     newname = tax_vector[2]
   }
-  if (length(groups) == length(color_list)) {
-    col_vec = color_list
-  } else if (length(groups) <= 9) {
-    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
-  } else {
-    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-  }
+  col_vec = setup_color_vector(po,variable_name,color_list)[[1]]
   p <- plot_ly(y = d, color = variable_factor, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
     layout(title = plot_name,
            #xaxis=list(tickangle = 90),
