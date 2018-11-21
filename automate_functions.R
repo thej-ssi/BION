@@ -270,6 +270,40 @@ denoise_microbiome <- function(data_tables, threshold, data_type) {
   final<-rbind(final, sample_data_summed)
   i<-i+1
 }
+  ### remove mammalia
+  #mammal_rem_index<-grep("Mammalia", taxmat_d$class)
+  #print(paste("number of mammalian sequences removed:",toString(length(mammal_rem_index))))
+  #final_mammals_rem<-final[-mammal_rem_index,]
+
+  print("## further sorting ##")
+
+  ### Merge mammals
+  tax_frame<-colsplit(final$Taxonomic.groups, "; ", names=c("domain","phylum","class","order","family","genus","species"))
+  mammal_index<-grep("Mammalia", tax_frame$class)
+  if(length(mammal_index)>0){
+    mammals_table<-final[mammal_index,]
+    mammals_identical_merged<-ddply(mammals_table, .(Taxonomic.groups), numcolwise(max))  # several identical lines, merge these by tkaing max (contribution from diff. primer set)
+    mammals_summed<-apply(mammals_identical_merged[2:ncol(mammals_identical_merged)], 2, sum) # sum up the rest (Tax_group, shifts to column one using ddply)
+    mammals_summed<-as.data.frame(t(mammals_summed))
+    mammals_summed$Taxonomic.groups<-"d__Eukaryota; p__Vertebrata; c__Mammalia; o__unclassified; f__unclassified; g__unclassified; s__unclassified"
+    mammals_summed<-mammals_summed[,c(ncol(mammals_summed), 1:(ncol(mammals_summed)-1))]
+    final_mammals_rem<-final[-mammal_index,]  # Remove mammals from the original final frame, and add the new mammal line (name of dataframe misleading...)
+    final_mammals_rem<-rbind(final_mammals_rem, mammals_summed)
+    print(paste("all mammalian: ", toString(nrow(mammals_table))))
+    print(paste("number of mammalian sequences that have been merged: ", toString(nrow(mammals_identical_merged))))
+  }else{
+    final_mammals_rem<-final
+  }
+
+  ### merge identical OTUs
+  print(paste("number of rows before mering:",toString(nrow(final_mammals_rem))))
+  final_summed<-ddply(final_mammals_rem, .(Taxonomic.groups), numcolwise(max))
+  print(paste("number of rows after mering:",toString(nrow(final_summed))))
+
+  return(final_summed)
+
+}
+
 
 
 
