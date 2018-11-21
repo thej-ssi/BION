@@ -194,6 +194,85 @@ combine_duplicates_from_phylo_object <- function(po) {
 }
 
 
+
+#######################################################
+##### Merge all raw BION output probe files       #####
+##### Set all counts less than x% of row max to 0 #####
+##### Combine all Mammalia                        #####
+##### Remove bacteria from 18s probe files        #####
+##### Collapse suggested taxa to unclassified     #####
+#######################################################
+
+denoise_microbiome <- function(data_tables, threshold, data_type) {
+  ## read in files, and sort for librarysize and count
+  final<-list()
+  i<-1
+  for(data_table in data_tables){
+    
+    sample_data<-data_table #read the sample
+    #sample_data<-data_tables[[1]] #REMOVE, only for testing
+    type<-data_type[i]
+
+    # remove unecessary columns
+    columns_to_remove<-c("Row.max","Row.sum", "Sim.", "Fav.", "Mark")
+    sample_data<-sample_data[,!(colnames(sample_data) %in% columns_to_remove)] # remove row max etc. 
+    
+    # replace >=threshold with 0, and rows that thereafter equals zero
+    sample_data[sample_data<=threshold]<-0 # set everything below or equal to 3 to zero, do his after merging instead? Should not matter if I merge with max inseat of sum...
+    sample_data$new_row_max<-apply(sample_data[1:(ncol(sample_data)-1)], 1, max) # remove rows where row_max=0
+    sample_data_max_over_zero<-sample_data[sample_data$new_row_max>0,]
+    sample_data<-sample_data_max_over_zero[,-ncol(sample_data_max_over_zero)] # remove sum column
+    names(sample_data)[ncol(sample_data)]<-"Taxonomic.groups" # change names of the last column to "Taxonomic.groups" (skipping line numbers) 
+
+    #remove bacteria from 18S data
+    print(type)
+    print(paste("number of OTUs before removing bacteria:",toString(nrow(sample_data))))
+    if(type=="18S"){
+      rem_lines_index<-grep("d__Bacteria;", sample_data$Taxonomic.groups)
+      if(length(rem_lines_index>0)){
+        sample_data<-sample_data[-rem_lines_index,]
+      }
+    }
+    print(paste("number of OTUs after removing bacteria:",toString(nrow(sample_data))))
+
+  ### should merge twice, ones to merge primer sets and one to merge after non-favorites are moved up one level. Make correct names sort with sum per dataset, THEN merge primersets with max
+
+  ### add "unclassified" if values are missing, e.g. stopping at genus instead of species
+  tax_strings<-sample_data$Taxonomic.groups
+  count <- str_count(tax_strings,";")
+  classifier=c("; p__unclassified","; c__unclassified","; o__unclassified","; f__unclassified","; g__unclassified","; s__unclassified")
+  for(ii in 0:length(classifier)-1){
+    tax_strings[count==ii] = paste0(tax_strings[count==ii],classifier[ii+1])
+    count <- str_count(tax_strings,";")
+  }
+  
+  tax_frame<-colsplit(tax_strings, "; ", names=c("domain","phylum","class","order","family","genus","species"))
+
+  ### go one up in hiearcy in cases of non-favorites
+  taxmat_d<-data.frame("kingdom"=as.character(tax_frame[,1]), "phylum"=as.character(tax_frame[,2]), "class"=as.character(tax_frame[,3]), "order"=as.character(tax_frame[,4]), "family"=as.character(tax_frame[,5]), "genus"=as.character(tax_frame[,6]), "species"=as.character(tax_frame[,7]), stringsAsFactors=F)
+
+  taxmat_d$species[grep("%",taxmat_d$species)]<-"s__unclassified"
+  taxmat_d$genus[grep("%",taxmat_d$genus)]<-"g__unclassified"
+  taxmat_d$family[grep("%",taxmat_d$family)]<-"f__unclassified"
+  taxmat_d$order[grep("%",taxmat_d$order)]<-"o__unclassified"
+  taxmat_d$class[grep("%",taxmat_d$class)]<-"c__unclassified"
+  taxmat_d$phylum[grep("%",taxmat_d$phylum)]<-"p__unclassified"
+  taxmat_d$kingdom[grep("%",taxmat_d$kingdom)]<-"d__unclassified"
+  new_tax_names<-apply(taxmat_d, 1, paste, collapse="; ")
+  
+  sample_data$Taxonomic.groups<-new_tax_names
+
+  # Merge within primer set by summing (that is: e.g. unclassified and non-favorites are now called the same e.g.  staph_unclassified, with staph_aureus60%/epi30%/lug10&)
+  sample_data_summed<-ddply(sample_data, .(Taxonomic.groups), numcolwise(sum))
+  #print(paste("number of rows before merging:",toString(nrow(sample_data))))
+  print(paste("number of rows after merging:",toString(nrow(sample_data_summed))))
+
+  final<-rbind(final, sample_data_summed)
+  i<-i+1
+}
+
+
+
 ### Set up two phyloseq objects, one for prokaryot and one for eukaryot species ###
 setup_phylo_object <- function(tsv_input,metadata) {
   if (colnames(tsv_input)[1] == "domain") {
