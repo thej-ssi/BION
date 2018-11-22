@@ -35,6 +35,9 @@ pkgTest('yaml')
 pkgTest('backports')
 pkgTest('openxlsx')
 pkgTest('webshot')
+pkgTest('stringr')
+pkgTest('plyr')
+
 #webshot::install_phantomjs()
 
 
@@ -52,6 +55,9 @@ setup_outdir <- function() {
   }
   return(outdir)
 }
+
+
+
 
 load_data <- function(input_file) {
   if (tolower(substr(input_file,nchar(input_file)-4,nchar(input_file))) == ".xlsx") {
@@ -302,6 +308,35 @@ denoise_microbiome <- function(data_tables, threshold, data_type) {
 
   return(final_summed)
 
+}
+
+data_initialization <- function(input_file_list) { ## Add this to Thors code
+  files_found=TRUE
+ 
+  for(input_file in input_file_list) {
+    if(!file.exists(file.path(input_file))) {
+      cat(sprintf("%s not found\n",input_file))
+      files_found=FALSE
+    }
+  }
+  if(!files_found) {
+    stop("Missing files")
+  }
+  data_tables <- list()
+  for(input_file in input_file_list){
+    data <- readLines(input_file)
+    if(grep(("#\\s*"),data[1])==1){ # if first line start with hash tag, remove hash tag
+      data[1] <- gsub("#\\s*","",data[1])
+    }
+    else{
+      stop(cat(sprintf("%s is not in proper format\n",input_file)))
+    }
+    data_tables<-c(data_tables,list(read.table(text=data, sep="\t", h=T, stringsAsFactors=F)))
+  }
+  
+  print(paste("number of data tables added:",toString(length(data_tables))))
+  return(data_tables)
+  
 }
 
 
