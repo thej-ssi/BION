@@ -892,7 +892,6 @@ top_taxa_heatmap <- function(po,top_10_taxa,filename) {
             labCol = F)
 }
 
-
 make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_vector=c()) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
@@ -953,7 +952,7 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_v
              margin = list(l=50,r=50,b=100,t=50))
     p
     heatmap_data = as.matrix(dd_sorted[1:2,fit$order])
-    sorted_variable_vector = split_variable_vector[fit$order]
+    sorted_variable_vector = as.vector(split_variable_vector)[fit$order]
     variable_levels = levels(factor(sorted_variable_vector))
     variable_n = length(variable_levels)
     if (missing(color_vector) | !length(color_vector)==variable_n) {
@@ -985,10 +984,11 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_v
               key.title = "")
     r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Shannon")))
     r_ordered = r[order(fit$order),]
-    r_ordered$ID = factor(r$ID,levels = cluster_order)
+    r_ordered$ID = factor(r_ordered$ID, levels = cluster_order)
+    rownames(r_ordered) = r_ordered$ID
     p2 <- plot_ly(type = "bar", data = r_ordered, x = ~ID, y = ~Shannon, color = I("#555555")) %>%
       layout(xaxis= list(showticklabels = FALSE))
-    return(list(p,p2,fit))
+    return(list(p,p2,fit,r,r_ordered))
   }
 }
 
