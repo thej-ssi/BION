@@ -693,6 +693,10 @@ set_api_key <- function() {
   Sys.setenv("plotly_username"="thej-ssi")
   Sys.setenv("plotly_api_key"="gFKgrgfaQjKs1GanZdA7")
 }
+              
+prune_by_variable <- function(po,variable_name,variable_value) {
+  return_po = prune_samples(sample_names(po)[which(get_variable(po,variable_name)==variable_value)],po)
+}
 
 make_PCOA_plot <- function(po,plotname) {
   ord <- ordinate(po, method = "PCoA", distance = "bray")
