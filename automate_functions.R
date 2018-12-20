@@ -695,7 +695,7 @@ set_api_key <- function() {
 }
               
 prune_by_variable <- function(po,variable_name,variable_value) {
-  return_po = prune_samples(sample_names(po)[which(get_variable(po,variable_name)==variable_value)],po)
+  return_po = prune_samples(sample_names(po)[which(get_variable(po,variable_name) %in% variable_value)],po)
 }
 
 make_PCOA_plot <- function(po,plotname) {
