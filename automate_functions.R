@@ -218,7 +218,7 @@ denoise_microbiome <- function(data_tables, threshold, data_type) {
     sample_data<-data_table #read the sample
     #sample_data<-data_tables[[1]] #REMOVE, only for testing
     type<-data_type[i]
-
+    
     # remove unecessary columns
     columns_to_remove<-c("Row.max","Row.sum", "Sim.", "Fav.", "Mark")
     sample_data<-sample_data[,!(colnames(sample_data) %in% columns_to_remove)] # remove row max etc. 
@@ -229,7 +229,7 @@ denoise_microbiome <- function(data_tables, threshold, data_type) {
     sample_data_max_over_zero<-sample_data[sample_data$new_row_max>0,]
     sample_data<-sample_data_max_over_zero[,-ncol(sample_data_max_over_zero)] # remove sum column
     names(sample_data)[ncol(sample_data)]<-"Taxonomic.groups" # change names of the last column to "Taxonomic.groups" (skipping line numbers) 
-
+    
     #remove bacteria from 18S data
     print(type)
     print(paste("number of OTUs before removing bacteria:",toString(nrow(sample_data))))
@@ -240,49 +240,49 @@ denoise_microbiome <- function(data_tables, threshold, data_type) {
       }
     }
     print(paste("number of OTUs after removing bacteria:",toString(nrow(sample_data))))
-
-  ### should merge twice, ones to merge primer sets and one to merge after non-favorites are moved up one level. Make correct names sort with sum per dataset, THEN merge primersets with max
-
-  ### add "unclassified" if values are missing, e.g. stopping at genus instead of species
-  tax_strings<-sample_data$Taxonomic.groups
-  count <- str_count(tax_strings,";")
-  classifier=c("; p__unclassified","; c__unclassified","; o__unclassified","; f__unclassified","; g__unclassified","; s__unclassified")
-  for(ii in 0:length(classifier)-1){
-    tax_strings[count==ii] = paste0(tax_strings[count==ii],classifier[ii+1])
+    
+    ### should merge twice, ones to merge primer sets and one to merge after non-favorites are moved up one level. Make correct names sort with sum per dataset, THEN merge primersets with max
+    
+    ### add "unclassified" if values are missing, e.g. stopping at genus instead of species
+    tax_strings<-sample_data$Taxonomic.groups
     count <- str_count(tax_strings,";")
+    classifier=c("; p__unclassified","; c__unclassified","; o__unclassified","; f__unclassified","; g__unclassified","; s__unclassified")
+    for(ii in 0:length(classifier)-1){
+      tax_strings[count==ii] = paste0(tax_strings[count==ii],classifier[ii+1])
+      count <- str_count(tax_strings,";")
+    }
+    
+    tax_frame<-colsplit(tax_strings, "; ", names=c("domain","phylum","class","order","family","genus","species"))
+    
+    ### go one up in hiearcy in cases of non-favorites
+    taxmat_d<-data.frame("kingdom"=as.character(tax_frame[,1]), "phylum"=as.character(tax_frame[,2]), "class"=as.character(tax_frame[,3]), "order"=as.character(tax_frame[,4]), "family"=as.character(tax_frame[,5]), "genus"=as.character(tax_frame[,6]), "species"=as.character(tax_frame[,7]), stringsAsFactors=F)
+    
+    taxmat_d$species[grep("%",taxmat_d$species)]<-"s__unclassified"
+    taxmat_d$genus[grep("%",taxmat_d$genus)]<-"g__unclassified"
+    taxmat_d$family[grep("%",taxmat_d$family)]<-"f__unclassified"
+    taxmat_d$order[grep("%",taxmat_d$order)]<-"o__unclassified"
+    taxmat_d$class[grep("%",taxmat_d$class)]<-"c__unclassified"
+    taxmat_d$phylum[grep("%",taxmat_d$phylum)]<-"p__unclassified"
+    taxmat_d$kingdom[grep("%",taxmat_d$kingdom)]<-"d__unclassified"
+    new_tax_names<-apply(taxmat_d, 1, paste, collapse="; ")
+    
+    sample_data$Taxonomic.groups<-new_tax_names
+    
+    # Merge within primer set by summing (that is: e.g. unclassified and non-favorites are now called the same e.g.  staph_unclassified, with staph_aureus60%/epi30%/lug10&)
+    sample_data_summed<-ddply(sample_data, .(Taxonomic.groups), numcolwise(sum))
+    #print(paste("number of rows before merging:",toString(nrow(sample_data))))
+    print(paste("number of rows after merging:",toString(nrow(sample_data_summed))))
+    
+    final<-rbind(final, sample_data_summed)
+    i<-i+1
   }
-  
-  tax_frame<-colsplit(tax_strings, "; ", names=c("domain","phylum","class","order","family","genus","species"))
-
-  ### go one up in hiearcy in cases of non-favorites
-  taxmat_d<-data.frame("kingdom"=as.character(tax_frame[,1]), "phylum"=as.character(tax_frame[,2]), "class"=as.character(tax_frame[,3]), "order"=as.character(tax_frame[,4]), "family"=as.character(tax_frame[,5]), "genus"=as.character(tax_frame[,6]), "species"=as.character(tax_frame[,7]), stringsAsFactors=F)
-
-  taxmat_d$species[grep("%",taxmat_d$species)]<-"s__unclassified"
-  taxmat_d$genus[grep("%",taxmat_d$genus)]<-"g__unclassified"
-  taxmat_d$family[grep("%",taxmat_d$family)]<-"f__unclassified"
-  taxmat_d$order[grep("%",taxmat_d$order)]<-"o__unclassified"
-  taxmat_d$class[grep("%",taxmat_d$class)]<-"c__unclassified"
-  taxmat_d$phylum[grep("%",taxmat_d$phylum)]<-"p__unclassified"
-  taxmat_d$kingdom[grep("%",taxmat_d$kingdom)]<-"d__unclassified"
-  new_tax_names<-apply(taxmat_d, 1, paste, collapse="; ")
-  
-  sample_data$Taxonomic.groups<-new_tax_names
-
-  # Merge within primer set by summing (that is: e.g. unclassified and non-favorites are now called the same e.g.  staph_unclassified, with staph_aureus60%/epi30%/lug10&)
-  sample_data_summed<-ddply(sample_data, .(Taxonomic.groups), numcolwise(sum))
-  #print(paste("number of rows before merging:",toString(nrow(sample_data))))
-  print(paste("number of rows after merging:",toString(nrow(sample_data_summed))))
-
-  final<-rbind(final, sample_data_summed)
-  i<-i+1
-}
   ### remove mammalia
   #mammal_rem_index<-grep("Mammalia", taxmat_d$class)
   #print(paste("number of mammalian sequences removed:",toString(length(mammal_rem_index))))
   #final_mammals_rem<-final[-mammal_rem_index,]
-
+  
   print("## further sorting ##")
-
+  
   ### Merge mammals
   tax_frame<-colsplit(final$Taxonomic.groups, "; ", names=c("domain","phylum","class","order","family","genus","species"))
   mammal_index<-grep("Mammalia", tax_frame$class)
@@ -300,19 +300,19 @@ denoise_microbiome <- function(data_tables, threshold, data_type) {
   }else{
     final_mammals_rem<-final
   }
-
+  
   ### merge identical OTUs
   print(paste("number of rows before mering:",toString(nrow(final_mammals_rem))))
   final_summed<-ddply(final_mammals_rem, .(Taxonomic.groups), numcolwise(max))
   print(paste("number of rows after mering:",toString(nrow(final_summed))))
-
+  
   return(final_summed)
-
+  
 }
 
 data_initialization <- function(input_file_list) { ## Add this to Thors code
   files_found=TRUE
- 
+  
   for(input_file in input_file_list) {
     if(!file.exists(file.path(input_file))) {
       cat(sprintf("%s not found\n",input_file))
@@ -493,7 +493,7 @@ get_taxa_names <- function(po,taxa) {
   return(newnames)
 }
 
-make_abundance_barplot <- function(po,taxa,plot_name) {
+make_abundance_barplot <- function(po,taxa,plot_name="Relative abundance") {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
     dd<-otu_table(po)
@@ -693,12 +693,12 @@ set_api_key <- function() {
   Sys.setenv("plotly_username"="thej-ssi")
   Sys.setenv("plotly_api_key"="gFKgrgfaQjKs1GanZdA7")
 }
-              
+
 prune_by_variable <- function(po,variable_name,variable_value) {
   return_po = prune_samples(sample_names(po)[which(get_variable(po,variable_name) %in% variable_value)],po)
 }
 
-make_PCOA_plot <- function(po,plotname) {
+make_PCOA_plot <- function(po,plotname="PCoA_plot") {
   ord <- ordinate(po, method = "PCoA", distance = "bray")
   groups = levels(sample_data(po)$sample_groups)
   if (length(groups) <= 9) {
@@ -712,7 +712,8 @@ make_PCOA_plot <- function(po,plotname) {
   return(returnlist)	
 }
 
-make_PCoA_object <- function(po,variable_name,plot_title,color_list,perform_anosim = TRUE) {
+make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=c(),perform_anosim = TRUE,rngseed = 1) {
+  set.seed(rngseed)
   ord <- ordinate(po, method = "PCoA", distance = "bray")
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(groups) == length(color_list)) {
@@ -727,7 +728,9 @@ make_PCoA_object <- function(po,variable_name,plot_title,color_list,perform_anos
     p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
   }
   if (perform_anosim) {
-    anosim_test = anosim(t(otu_table(po)),grouping = factor(as.character(get_variable(po,variable_name))))
+    phen_vec = as.character(get_variable(po,variable_name))
+    phen_factor = factor(phen_vec[which(!is.na(phen_vec))])
+    anosim_test = anosim(t(otu_table(po)[,which(!is.na(phen_vec))]),grouping = phen_factor,permutations = 999)
     returnlist = list(p,anosim_test,anosim_test$statistic,anosim_test$signif)
   } else {
     returnlist = list(p)
@@ -997,7 +1000,7 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_v
 }
 
 
-make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_list) {
+make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap",color_list=c()) {
   group_color_vector = as.vector(get_variable(po,variable_name))
   groups = levels(factor(group_color_vector))
   group_count = length(groups)
@@ -1059,7 +1062,7 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title,color_li
 
 
 
-make_violin_object <- function(po,variable_name,taxa,plot_title="",color_list=c(),level_list=c()) {
+make_violin_object <- function(po,variable_name,taxa,plot_title="Distribution of relative abundance",color_list=c(),level_list=c()) {
   color_vector = setup_color_vector(po,variable_name,color_list)[[1]]
   otu = otu_table(po)[taxa,]
   tax_vector = get_taxa_names(po,taxa)
@@ -1086,7 +1089,7 @@ make_violin_object <- function(po,variable_name,taxa,plot_title="",color_list=c(
       labs(y = "Rarefied sequence counts", x = "Taxa", title = plot_title)
     p
   }
-
+  
   return(list(p,data,data2))
 }
 
@@ -1141,7 +1144,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonfer
 }
 
 
-make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list=c()) {
+make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="Distribution of relative abundance",color_list=c()) {
   variable_vector = as.vector(get_variable(po,variable_name))
   groups = unique(variable_vector)
   d = as.vector(otu_table(po)[OTU,])
@@ -1193,8 +1196,8 @@ make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="",color_li
            margin = list(l=50,r=50,b=100,t=50),
            showlegend = FALSE)
 }
-                          
-                          
+
+
 
 test_color_tile <- function(color_vec) {
   values = rep(1,length(color_vec))
@@ -1260,10 +1263,10 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list) {
   bar_plot = make_abundance_barplot(po,taxa = top10_taxa, "Top 10 most abundant species")
   bar_plot
   make_barplot_plus_object(po,top10_taxa,"Group","Top 10 most abundant species",color_vector)
-
+  
   Heatmap = make_heatmap_object(po,get_top_n_taxa(po,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
   Heatmap
-
+  
   taxa_comparison_df = make_taxa_comparison_object(po,"Group","bonferroni")
   
   return(list(Alphadiv_plot,PCoA_plot,bar_plot,Heatmap,taxa_comparison_df))
