@@ -1112,7 +1112,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonfer
     }
     MWU_tests = apply(d,1, function(e) wilcox.test(as.numeric(e[which(variable_vector == groups[1])]),as.numeric(e[which(variable_vector == groups[2])]))$p.value)
     MWU_corrected = p.adjust(MWU_tests,method = p_adjust_method)
-    mwu_headers = c('p','p adjusted')
+    mwu_headers = c('p','p.adjusted')
     p_mat = cbind(p_mat,as.numeric(MWU_tests),as.numeric(MWU_corrected))
   } else {
     mean_headers = c('mean, all')
@@ -1130,7 +1130,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonfer
         MWU_tests = apply(d,1, function(e) wilcox.test(as.numeric(e[which(variable_vector == group1)]),as.numeric(e[which(variable_vector == group2)]))$p.value)
         MWU_corrected = p.adjust(MWU_tests,method = p_adjust_method)
         mwu_header = paste0('p, ',group1,' v ',group2)
-        mwu_corrected_header = paste0('p adjusted, ',group1,' v ',group2)
+        mwu_corrected_header = paste0('p.adjusted_',group1,'.v.',group2)
         mwu_headers = c(mwu_headers,mwu_header,mwu_corrected_header)
         p_mat = cbind(p_mat,as.numeric(MWU_tests),as.numeric(MWU_corrected))
       }
