@@ -1207,7 +1207,7 @@ test_color_tile <- function(color_vec) {
 }
 
 make_legend_color <- function(po,variable_name,color_list) {
-  groups = levels(factor(as.character(get_variable(po,variable_name))))
+  groups = levels(get_variable(po,variable_name))
   values = rep(1,length(groups))
   variable_n = length(groups)
   if (missing(color_list) | !length(color_list)==variable_n) {
