@@ -960,7 +960,7 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_v
     p
     heatmap_data = as.matrix(dd_sorted[1:2,fit$order])
     sorted_variable_vector = as.vector(split_variable_vector)[fit$order]
-    variable_levels = levels(factor(sorted_variable_vector))
+    variable_levels = levels(split_variable_vector)
     variable_n = length(variable_levels)
     if (missing(color_vector) | !length(color_vector)==variable_n) {
       if (variable_n < 10) {
