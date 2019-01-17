@@ -1144,7 +1144,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonfer
 }
 
 
-make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="Distribution of relative abundance",color_list=c()) {
+make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="Distribution of relative abundance",color_list=c()) {
   variable_vector = as.vector(get_variable(po,variable_name))
   groups = unique(variable_vector)
   d = as.vector(otu_table(po)[OTU,])
@@ -1170,7 +1170,8 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="Distribution
            margin = list(l=50,r=50,b=100,t=50),
            showlegend = FALSE)
 }
-make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="",color_list=c()) {
+                          
+make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list=c()) {
   variable_factor = get_variable(po,variable_name)
   groups = levels(variable_factor)
   d = as.vector(otu_table(po)[OTU,])
@@ -1227,6 +1228,27 @@ make_legend_color <- function(po,variable_name,color_list) {
 
 
 setup_color_vector <- function(po,variable_name,color_list) {
+  group_color_vector = get_variable(po,variable_name)
+  groups = levels(group_color_vector)
+  group_count = length(groups)
+  if (length(color_list) == group_count) {
+    group_colors = color_list
+  } else if (group_count<=9) {
+    group_colors = RColorBrewer::brewer.pal(9,name="Set1")[1:group_count]
+  } else if (group_count<=12) {
+    group_colors = RColorBrewer::brewer.pal(12,name="Set3")[1:group_count]
+  } else {
+    group_colors = grDevices::rainbow(group_count)
+  }
+  color_table = matrix(ncol=2,nrow=0)
+  for (i in 1:length(groups)) {
+    group_color_vector[group_color_vector==groups[i]] = group_colors[i]
+    color_table= rbind(color_table,c(groups[i],group_colors[i]))
+  }
+  return(list(group_colors,color_table))
+}
+                          
+setup_color_vector_2 <- function(po,variable_name,color_list) {
   group_color_vector = as.vector(get_variable(po,variable_name))
   groups = levels(factor(group_color_vector))
   group_count = length(groups)
