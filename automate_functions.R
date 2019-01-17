@@ -1063,7 +1063,7 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap
 
 
 make_violin_object <- function(po,variable_name,taxa,plot_title="Distribution of relative abundance",color_list=c(),level_list=c()) {
-  color_vector = setup_color_vector(po,variable_name,color_list)[[1]]
+  color_vector = setup_color_vector(po,variable_name,color_list)
   otu = otu_table(po)[taxa,]
   tax_vector = get_taxa_names(po,taxa)
   variable_vector = as.vector(get_variable(po,variable_name))
@@ -1162,7 +1162,7 @@ make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="Distributi
   } else {
     newname = tax_vector[2]
   }
-  col_vec = setup_color_vector(po,variable_name,color_list)[[1]]
+  col_vec = setup_color_vector(po,variable_name,color_list)
   p <- plot_ly(y = d, color = variable_vector, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
     layout(title = plot_name,
            #xaxis=list(tickangle = 90),
@@ -1189,7 +1189,7 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
   } else {
     newname = tax_vector[2]
   }
-  col_vec = setup_color_vector(po,variable_name,color_list)[[1]]
+  col_vec = setup_color_vector(po,variable_name,color_list)
   p <- plot_ly(y = d, color = variable_factor, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
     layout(title = plot_name,
            #xaxis=list(tickangle = 90),
@@ -1207,22 +1207,13 @@ test_color_tile <- function(color_vec) {
   return(p)
 }
 
-make_legend_color <- function(po,variable_name,color_list) {
+make_legend_color <- function(po,variable_name,color_list=c()) {
   groups = levels(get_variable(po,variable_name))
   values = rep(1,length(groups))
   variable_n = length(groups)
-  if (missing(color_list) | !length(color_list)==variable_n) {
-    if (variable_n < 10) {
-      Rcol_vec = RColorBrewer::brewer.pal(9,"Set1")[variable_n]
-    } else if (variable_n < 13) {
-      Rcol_vec = RColorBrewer::brewer.pal(12,"Set3")[variable_n]
-    } else {
-      Rcol_vec = grDevices::rainbow(variable_n)
-    }
-  } else {
-    Rcol_vec = color_list
-  }
-  p <- plot_ly(type = "bar", x = groups, y = values, name = groups, color = groups, colors = Rcol_vec)
+  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)[[1]]
+  xgroups = factor(groups, levels = groups)
+  p <- plot_ly(type = "bar", x = xgroups, y = values, name = xgroups, color = xgroups, colors = Rcol_vec)
   return(p)
 }
 
@@ -1240,12 +1231,7 @@ setup_color_vector <- function(po,variable_name,color_list) {
   } else {
     group_colors = grDevices::rainbow(group_count)
   }
-  color_table = matrix(ncol=2,nrow=0)
-  for (i in 1:length(groups)) {
-    group_color_vector[group_color_vector==groups[i]] = group_colors[i]
-    color_table= rbind(color_table,c(groups[i],group_colors[i]))
-  }
-  return(list(group_colors,color_table))
+  return(group_colors)
 }
                           
 setup_color_vector_2 <- function(po,variable_name,color_list) {
@@ -1271,8 +1257,7 @@ setup_color_vector_2 <- function(po,variable_name,color_list) {
 
 run_cross_sectional_analysis <- function(po, variable_name, color_list) {
   sample_data(po)$Group = as.character(as.vector(get_variable(po,variable_name)))
-  color_output = setup_color_vector(po,"Group",color_list)
-  color_vector = color_output[[1]]
+  color_vector = setup_color_vector(po,"Group",color_list)
   
   Alphadiv_plot = make_alphadiversity_object(po,variable_name = "Group",plot_title = paste0("Alpha diversity of ",variable_name),color_vector)
   Alphadiv_plot
