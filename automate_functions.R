@@ -663,28 +663,41 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
            yaxis=list(title='Shannon diversity index'),
            margin = list(l=50,r=50,b=100,t=50),
            showlegend = FALSE)
-  p_matrix = matrix(ncol = length(groups), nrow = length(groups))
+  shannon_matrix = matrix(ncol = length(groups), nrow = length(groups))
+  observed_matrix = matrix(ncol = length(groups), nrow = length(groups))
   for (n1 in 1:(length(groups)-1)) {
     print(n1)
     for (n2 in (n1+1):length(groups)) {
       group1 = groups[n1]
       group2 = groups[n2]
+      ### Shannon
       print(paste0('group1 ',group1))
       print(paste0('group2 ',group2))
       vec1 = r$Shannon[which(r$type==group1)]
       vec2 = r$Shannon[which(r$type==group2)]
       wilcox_shannon = wilcox.test(vec1,vec2)
-      p_matrix[n1,n2] <- wilcox_shannon$p.value
-      p_matrix[n2,n1] <- wilcox_shannon$p.value
+      shannon_matrix[n1,n2] <- wilcox_shannon$p.value
+      shannon_matrix[n2,n1] <- wilcox_shannon$p.value
+      ### Observed
+      print(paste0('group1 ',group1))
+      print(paste0('group2 ',group2))
+      vec1 = r$Observed[which(r$type==group1)]
+      vec2 = r$Observed[which(r$type==group2)]
+      wilcox_observed = wilcox.test(vec1,vec2)
+      observed_matrix[n1,n2] <- wilcox_observed$p.value
+      observed_matrix[n2,n1] <- wilcox_observed$p.value
     }
     
   }
   kruskal_Observed = kruskal.test(r$Observed,r$type)
   kruskal_Shannon = kruskal.test(r$Shannon,r$type)
-  p_df = as.data.frame(p_matrix)
-  rownames(p_df) = groups
-  colnames(p_df) = groups
-  return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value,p_df)
+  p_df_shannon = as.data.frame(shannon_matrix)
+  p_df_observed = as.data.frame(observed_matrix)
+  rownames(p_df_shannon) = groups
+  colnames(p_df_shannon) = groups
+  rownames(p_df_observed) = groups
+  colnames(p_df_observed) = groups
+  return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value,p_df_observed,p_df_shannon)
   print(col_vec)
   return(return_list)
 }
