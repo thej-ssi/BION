@@ -746,7 +746,7 @@ make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",dist_method
   }
   if (perform_anosim) {
     phen_vec = as.character(get_variable(po,variable_name))
-    phen_factor = get_variable(po,variable_name)
+    phen_factor = get_variable(po,variable_name)[which(!is.na(phen_vec))]
     if (dist_method == "jaccard" | dist_method == "binary") {
       anosim_test = anosim(t(otu_table(po)[,which(!is.na(phen_vec))]),grouping = phen_factor,permutations = 1000, distance = "jaccard")
     } else {
