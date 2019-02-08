@@ -725,9 +725,9 @@ make_PCOA_plot <- function(po,plotname="PCoA_plot") {
   return(returnlist)	
 }
 
-make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=c(),perform_anosim = TRUE,rngseed = 1) {
+make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",dist_method = "bray",color_list=c(),perform_anosim = TRUE,rngseed = 1) {
   set.seed(rngseed)
-  ord <- ordinate(po, method = "PCoA", distance = "bray")
+  ord <- ordinate(po, method = "PCoA", distance = dist_method)
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(groups) == length(color_list)) {
     col_vec = color_list
