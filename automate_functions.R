@@ -727,7 +727,11 @@ make_PCOA_plot <- function(po,plotname="PCoA_plot") {
 
 make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",dist_method = "bray",color_list=c(),perform_anosim = TRUE,rngseed = 1) {
   set.seed(rngseed)
-  ord <- ordinate(po, method = "PCoA", distance = dist_method)
+  if (dist_method == "jaccard" | dist_method == "binary") {
+    ord <- ordinate(po, method = "PCoA", distance = "jaccard", binary = TRUE)
+  } else {
+    ord <- ordinate(po, method = "PCoA", distance = dist_method)
+  }
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(groups) == length(color_list)) {
     col_vec = color_list
