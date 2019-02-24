@@ -1020,10 +1020,11 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_v
     return(list(p,p2,fit,r,r_ordered))
   }
 }
-
-make_ordered_barplot <- function(po,taxa,plot_variable,sort_variable,plot_title="",color_vector=c()) {
+              
+              
+make_ordered_barplot <- function(po,taxa,plot_variable,sort_variable,plot_title="",col_vec=c()) {
   if (class(po)=="phyloseq") {
-    color_vector = setup_color_vector(po,plot_variable,color_vector)
+    color_vector = setup_color_vector(po,plot_variable,col_vec)
     taxmat = tax_table(po)
     dd<-otu_table(po)
     dd<-apply(dd, 2, function(x) x/sum(x)*100)
@@ -1090,7 +1091,6 @@ make_ordered_barplot <- function(po,taxa,plot_variable,sort_variable,plot_title=
     return(list(p,p_tiles))
   }
 }
-
 
 make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap",color_list=c()) {
   group_color_vector = as.vector(get_variable(po,variable_name))
