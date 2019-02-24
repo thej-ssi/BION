@@ -1021,6 +1021,76 @@ make_barplot_plus_object <- function(po,taxa,variable_name,plot_title="",color_v
   }
 }
 
+make_ordered_barplot <- function(po,taxa,plot_variable,sort_variable,plot_title="",color_vector=c()) {
+  if (class(po)=="phyloseq") {
+    color_vector = setup_color_vector(po,plot_variable,color_vector)
+    taxmat = tax_table(po)
+    dd<-otu_table(po)
+    dd<-apply(dd, 2, function(x) x/sum(x)*100)
+    dd<-as.data.frame(dd)
+    split_variable_vector = get_variable(po,plot_variable)
+    dd$sum<-apply(dd, 1, sum)
+    dd_sorted<-dd[dd$sum>0,]
+    dd_sorted<-dd_sorted[,-ncol(dd_sorted)]
+    #plot(fit, cex=0.5) # display dendogram
+    newnames = c()
+    top10_otu_table = matrix(nrow=0,ncol=ncol(dd_sorted))
+    for (i in 1:length(taxa)) {
+      rownumber = taxa[i]
+      tax_vector = as.vector(taxmat[rownumber,])
+      if (!is.na(tax_vector[7])) {
+        newname = paste0(tax_vector[6],' ',tax_vector[7])
+      } else if (!is.na(tax_vector[6]) & !tax_vector[6]=="unclassified") {
+        newname = tax_vector[6]
+      } else if (!is.na(tax_vector[5]) & !tax_vector[5]=="unclassified") {
+        newname = tax_vector[5]
+      } else if (!is.na(tax_vector[4]) & !tax_vector[4]=="unclassified") {
+        newname = tax_vector[4]
+      } else if (!is.na(tax_vector[3]) & !tax_vector[3]=="unclassified") {
+        newname = tax_vector[3]
+      } else {
+        newname = tax_vector[2]
+      }
+      newnames = c(newnames,newname)
+      top10_otu_table = rbind(top10_otu_table,dd[rownumber,])
+    }
+    rownames(top10_otu_table)<-newnames
+    top10=top10_otu_table
+    top10 = top10[,!colnames(top10)=="sum"]
+    top10$species<-row.names(top10)
+    melt_top10<-melt(top10)
+    melt_top10$variable <- factor(melt_top10$variable,levels = sample_names(po)[order(get_variable(po,sort_variable))])
+    names(melt_top10)<-c("genus", "ID", "percent")
+    p <- plot_ly(data = melt_top10[which(melt_top10$genus == rownames(top10)[10]),], x = ~ID, y = ~percent, type = 'bar', name =rownames(top10)[10]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[9]),], name =rownames(top10)[9]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[8]),], name =rownames(top10)[8]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[7]),], name =rownames(top10)[7]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[6]),], name =rownames(top10)[6]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[5]),], name =rownames(top10)[5]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[4]),], name =rownames(top10)[4]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[3]),], name =rownames(top10)[3]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[2]),], name =rownames(top10)[2]) %>%
+      add_trace(data = melt_top10[which(melt_top10$genus == rownames(top10)[1]),], name =rownames(top10)[1]) %>%
+      layout(title = plot_title,
+             xaxis=list(title="Sample ID"),
+             yaxis=list(title="Abundance (percent of rarefied counts)"),
+             barmode = 'stack',
+             #autosize = F,
+             margin = list(l=50,r=50,b=100,t=50))
+    p
+    tile_df = data.frame("Type"=as.character(as.vector(get_variable(po,plot_variable)))[order(get_variable(po,sort_variable))],"y" = rep(1,length(sample_names(po))),"ID"=sample_names(po)[order(get_variable(po,sort_variable))])
+    p_tiles = ggplot(data=tile_df)+geom_tile(aes(x=ID, y=y, fill=Type))+theme_bw()+scale_fill_manual(values=color_vector)+theme(axis.text.x = element_text(angle = -90, hjust = 1))
+    ggplot(data=tile_df)+geom_tile(aes(x=ID, y=y, fill=Type))+theme_bw()+scale_fill_manual(values=col_vec)+theme(axis.text.x = element_text(angle = -90, hjust = 1))
+    r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,plot_variable)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Shannon")))
+    r_ordered = r[order(get_variable(po,sort_variable)),]
+    r_ordered$ID = factor(r_ordered$ID, levels = sample_names(po)[order(get_variable(po,sort_variable))])
+    rownames(r_ordered) = r_ordered$ID
+    p2 <- plot_ly(type = "bar", data = r_ordered, x = ~ID, y = ~Shannon, color = I("#555555")) %>%
+      layout(xaxis= list(showticklabels = FALSE))
+    return(list(p,p_tiles))
+  }
+}
+
 
 make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap",color_list=c()) {
   group_color_vector = as.vector(get_variable(po,variable_name))
