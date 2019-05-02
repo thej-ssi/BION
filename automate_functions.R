@@ -732,7 +732,11 @@ make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=
   } else {
     ord <- ordinate(po, method = "PCoA", distance = dist_method)
   }
-  groups = levels(factor(get_variable(po,variable_name)))
+  if (class(get_variable(po,variable_name)=="factor") {
+    groups = get_variable(po,variable_name)
+  } else {
+    groups = levels(factor(get_variable(po,variable_name)))
+  }
   if (length(groups) == length(color_list)) {
     col_vec = color_list
     p = plot_ordination(po,ord, color=variable_name, title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
