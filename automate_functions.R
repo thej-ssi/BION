@@ -1367,10 +1367,14 @@ test_color_tile <- function(color_vec) {
 }
 
 make_legend_color <- function(po,variable_name,color_list=c()) {
-  groups = levels(get_variable(po,variable_name))
+  if (class(get_variable(po,variable_name)=="factor") {
+    groups = levels(get_variable(po,variable_name))
+  } else {
+    groups = levels(factor(get_variable(po,variable_name)))
+  }
   values = rep(1,length(groups))
   variable_n = length(groups)
-  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)[[1]]
+  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)
   xgroups = factor(groups, levels = groups)
   p <- plot_ly(type = "bar", x = xgroups, y = values, name = xgroups, color = xgroups, colors = Rcol_vec)
   return(p)
