@@ -1335,6 +1335,29 @@ setup_color_vector_2 <- function(po,variable_name,color_list) {
   return(list(group_colors,color_table))
 }
 
+test_color_tile <- function(color_vec) {
+  values = rep(1,length(color_vec))
+  col_vec = factor(color_vec,levels=c(as.character(color_vec)))
+  p <- plot_ly(type = "bar", x = col_vec, y = ~values, name = col_vec, color = col_vec, colors = color_vec)
+  return(p)
+}
+
+
+make_legend_color <- function(po,variable_name,color_list=c()) {
+  if (class(get_variable(po,variable_name))=="factor") {
+    groups = levels(get_variable(po,variable_name))
+  } else {
+    groups = levels(factor(get_variable(po,variable_name)))
+  }
+  values = rep(1,length(groups))
+  variable_n = length(groups)
+  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)
+  xgroups = groups
+  p <- plot_ly(type = "bar", x = xgroups, y = values, name = xgroups, color = xgroups, colors = Rcol_vec)
+  return(p)
+}
+
+
 run_cross_sectional_analysis <- function(po, variable_name, color_list) {
   sample_data(po)$Group = as.character(as.vector(get_variable(po,variable_name)))
   color_vector = setup_color_vector(po,"Group",color_list)
@@ -1359,26 +1382,6 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list) {
   return(list(Alphadiv_plot,PCoA_plot,bar_plot,Heatmap,taxa_comparison_df))
 }
 
-test_color_tile <- function(color_vec) {
-  values = rep(1,length(color_vec))
-  col_vec = factor(color_vec,levels=c(as.character(color_vec)))
-  p <- plot_ly(type = "bar", x = col_vec, y = ~values, name = col_vec, color = col_vec, colors = color_vec)
-  return(p)
-}
-
-make_legend_color <- function(po,variable_name,color_list=c()) {
-  if (class(get_variable(po,variable_name)=="factor") {
-    groups = levels(get_variable(po,variable_name))
-  } else {
-    groups = levels(factor(get_variable(po,variable_name)))
-  }
-  values = rep(1,length(groups))
-  variable_n = length(groups)
-  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)
-  xgroups = factor(groups, levels = groups)
-  p <- plot_ly(type = "bar", x = xgroups, y = values, name = xgroups, color = xgroups, colors = Rcol_vec)
-  return(p)
-}
 
 
 run_all <- function(rare_prokaryot,rare_eukaryot,rare_fungi,summary_list) {
