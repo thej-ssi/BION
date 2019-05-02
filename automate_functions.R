@@ -732,17 +732,18 @@ make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=
   } else {
     ord <- ordinate(po, method = "PCoA", distance = dist_method)
   }
-  if (class(get_variable(po,variable_name)=="factor") {
-    groups = get_variable(po,variable_name)
+  if (class(get_variable(po,variable_name))=="factor") {
+    groups = levels(get_variable(po,variable_name))
   } else {
     groups = levels(factor(get_variable(po,variable_name)))
   }
   if (length(groups) == length(color_list)) {
     col_vec = color_list
+    names(col_vec) = groups
     p = plot_ordination(po,ord, color=variable_name, title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
   } else if (length(groups) <= 9) {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+    col_vec = RColorBrewer::brewer.pal(9,"Set1")[1:length(groups)]
     p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
   } else {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
@@ -1296,23 +1297,6 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
 
 
 
-test_color_tile <- function(color_vec) {
-  values = rep(1,length(color_vec))
-  col_vec = factor(color_vec,levels=c(as.character(color_vec)))
-  p <- plot_ly(type = "bar", x = col_vec, y = ~values, name = col_vec, color = col_vec, colors = color_vec)
-  return(p)
-}
-
-make_legend_color <- function(po,variable_name,color_list=c()) {
-  groups = levels(get_variable(po,variable_name))
-  values = rep(1,length(groups))
-  variable_n = length(groups)
-  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)[[1]]
-  xgroups = factor(groups, levels = groups)
-  p <- plot_ly(type = "bar", x = xgroups, y = values, name = xgroups, color = xgroups, colors = Rcol_vec)
-  return(p)
-}
-
 
 setup_color_vector <- function(po,variable_name,color_list) {
   group_color_vector = get_variable(po,variable_name)
@@ -1375,7 +1359,22 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list) {
   return(list(Alphadiv_plot,PCoA_plot,bar_plot,Heatmap,taxa_comparison_df))
 }
 
+test_color_tile <- function(color_vec) {
+  values = rep(1,length(color_vec))
+  col_vec = factor(color_vec,levels=c(as.character(color_vec)))
+  p <- plot_ly(type = "bar", x = col_vec, y = ~values, name = col_vec, color = col_vec, colors = color_vec)
+  return(p)
+}
 
+make_legend_color <- function(po,variable_name,color_list=c()) {
+  groups = levels(get_variable(po,variable_name))
+  values = rep(1,length(groups))
+  variable_n = length(groups)
+  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)[[1]]
+  xgroups = factor(groups, levels = groups)
+  p <- plot_ly(type = "bar", x = xgroups, y = values, name = xgroups, color = xgroups, colors = Rcol_vec)
+  return(p)
+}
 
 
 run_all <- function(rare_prokaryot,rare_eukaryot,rare_fungi,summary_list) {
