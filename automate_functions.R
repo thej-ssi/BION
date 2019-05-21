@@ -1382,7 +1382,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list) {
   return(list(Alphadiv_plot,PCoA_plot,bar_plot,Heatmap,taxa_comparison_df))
 }
                           
-                          
+
 get_alphadiversity_change <- function(po,pt_var,time_var,time_values,change_var) {
   m = sample_data(po)
   d = otu_table(po)
@@ -1430,6 +1430,43 @@ get_alphadiversity_change <- function(po,pt_var,time_var,time_values,change_var)
   m_df$delta_Shannon = shannon_change_vec
   m_df$variable_change = change_vec
   return(m_df)
+}
+
+get_alphadiversity_change_consecutive <- function(po,pt_var,time_var,time_values,change_var) {
+  m_list = list()
+  for (i in 1:(length(time_values)-1)) {
+    t1 = time_values[i]
+    t2 = time_values[i+1]
+    sub_m = get_alphadiversity_change(po,pt_var,time_var,c(t1,t2),change_var)
+    if (nrow(sub_m) > 0) {
+      sub_m$time_change = paste0(t1,' - ',t2)
+      m_list[[i]] = sub_m
+    }
+  }
+  m_combined = m_list[[1]]
+  for (i in 2:length(m_list)) {
+    m_combined = rbind(m_combined,m_list[[i]])
+  }
+  return(m_combined)
+}
+
+
+get_alphadiversity_change_from_zero <- function(po,pt_var,time_var,time_values,change_var) {
+  m_list = list()
+  t1 = time_values[1]
+  for (i in 1:(length(time_values)-1)) {
+    t2 = time_values[i+1]
+    sub_m = get_alphadiversity_change(po,pt_var,time_var,c(t1,t2),change_var)
+    if (nrow(sub_m) > 0) {
+      sub_m$time_change = paste0(t2)
+      m_list[[i]] = sub_m
+    }
+  }
+  m_combined = m_list[[1]]
+  for (i in 2:length(m_list)) {
+    m_combined = rbind(m_combined,m_list[[i]])
+  }
+  return(m_combined)
 }
 
 
