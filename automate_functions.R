@@ -1239,6 +1239,39 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonfer
   rownames(return_df) = rownames(tax)
   return(return_df)
 }
+                          
+                          
+                          
+make_presence_absence_comparison_object <- function(po,variable_name,p_adjust_method="bonferroni",presence_threshold_percent = 0) {
+  d = otu_table(po)
+  tax = tax_table(po)
+  variable_vector = as.vector(get_variable(po,variable_name))
+  groups = unique(variable_vector)
+  variable_count = length(groups)
+  p_mat = tax
+  if (variable_count < 2) {
+    print("Less than two types found in designated variable")
+  } else {
+    d2 = d
+    d2[d<=presence_threshold_percent] <- 0
+    d2[d>presence_threshold_percent] <- 1
+    d_g1 = d2[,which(variable_vector == groups[1])]
+    d_g2 = d2[,which(variable_vector == groups[2])]
+    sample_count = ncol(d)
+    sample_count_g1 = ncol(d_g1)
+    sample_count_g2 = ncol(d_g2)
+    pval <- apply(d2, 1, function(e) fisher.test(table(factor(e, levels=c(0,1)), variable_vector))$p.value)
+    g1_presence_vector <- apply(d_g1, 1, sum)
+    g1_absence_vector = sample_count-g1_presence_vector
+    g2_presence_vector <- apply(d_g2, 1, sum)
+    g2_absence_vector = sample_count-g2_presence_vector
+    p.corrected = p.adjust(pval,method = p_adjust_method)
+    return_df = as.data.frame(cbind(rep(1:nrow(p_mat)),tax,g1_presence_vector,g1_absence_vector,g2_presence_vector,g2_absence_vector,pval,p.corrected))
+    colnames(return_df) = c("Rownumber",colnames(tax),paste0(groups[1],'_present'),paste0(groups[1],'_absent'),paste0(groups[2],'_present'),paste0(groups[2],'_absent'),"p","p.corrected")
+    rownames(return_df) = rownames(tax)
+    return(return_df)
+  }
+}
 
 
 make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="Distribution of relative abundance",color_list=c()) {
