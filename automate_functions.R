@@ -1390,6 +1390,86 @@ make_legend_color <- function(po,variable_name,color_list=c()) {
   return(p)
 }
 
+                  
+                  
+
+get_alphadiversity_change_observed <- function(po,pt_var,time_var,time_values,change_var) {
+  m = sample_data(po)
+  d = otu_table(po)
+  otu_change_mat = matrix(nrow = nrow(d),ncol=0)
+  m_mat = matrix(nrow=0,ncol=ncol(m))
+  patient_vec = get_variable(po,pt_var)
+  time_vec = get_variable(po,time_var)
+  patients = levels(patient_vec)
+  ID_vec = sample_names(po)
+  IDs = c()
+  change_vec = c()
+  change_var_vec = get_variable(po,change_var)
+  AD_change_vec = c()
+  r <- data.frame(ID=sample_names(po), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
+  for (pt in patients) {
+    row1 = which(patient_vec == pt & time_vec == time_values[1])
+    row2 = which(patient_vec == pt & time_vec == time_values[2])
+    if (length(row1) > 0 & length(row2) > 0) {
+      AD_change = r$Observed[row2]-r$Observed[row1]
+      print(AD_change)
+      AD_change_vec = c(AD_change_vec,AD_change)
+      IDs = c(IDs,pt)
+      change_1 = change_var_vec[row1]
+      change_2 = change_var_vec[row2]
+      m_mat = rbind(m_mat,m[row1,])
+      if (class(change_1)=="numeric" & class(change_2)=="numeric") {
+        change = change_2-change_1
+      } else {
+        change = paste0(change_1,' - ',change_2)
+      }
+      change_vec = c(change_vec,change)
+    }
+  }
+  m_df = as.data.frame(m_mat)
+  rownames(m_df) = IDs
+  return(list(AD_change_vec,m_df,change_vec))
+}
+
+get_alphadiversity_change_shannon <- function(po,pt_var,time_var,time_values,change_var) {
+  m = sample_data(po)
+  d = otu_table(po)
+  otu_change_mat = matrix(nrow = nrow(d),ncol=0)
+  m_mat = matrix(nrow=0,ncol=ncol(m))
+  patient_vec = get_variable(po,pt_var)
+  time_vec = get_variable(po,time_var)
+  patients = levels(patient_vec)
+  ID_vec = sample_names(po)
+  IDs = c()
+  change_vec = c()
+  change_var_vec = get_variable(po,change_var)
+  AD_change_vec = c()
+  r <- data.frame(ID=sample_names(po), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
+  for (pt in patients) {
+    row1 = which(patient_vec == pt & time_vec == time_values[1])
+    row2 = which(patient_vec == pt & time_vec == time_values[2])
+    if (length(row1) > 0 & length(row2) > 0) {
+      AD_change = r$Shannon[row2]-r$Shannon[row1]
+      print(AD_change)
+      AD_change_vec = c(AD_change_vec,AD_change)
+      IDs = c(IDs,pt)
+      change_1 = change_var_vec[row1]
+      change_2 = change_var_vec[row2]
+      m_mat = rbind(m_mat,m[row1,])
+      if (class(change_1)=="numeric" & class(change_2)=="numeric") {
+        change = change_2-change_1
+      } else {
+        change = paste0(change_1,' - ',change_2)
+      }
+      change_vec = c(change_vec,change)
+    }
+  }
+  m_df = as.data.frame(m_mat)
+  rownames(m_df) = IDs
+  return(list(AD_change_vec,m_df,change_vec))
+}
+                  
+                  
 
 run_cross_sectional_analysis <- function(po, variable_name, color_list) {
   sample_data(po)$Group = as.character(as.vector(get_variable(po,variable_name)))
