@@ -86,7 +86,7 @@ load_data <- function(input_file) {
   return(tsv_input)
 }
 
-load_data_2 <- function(input_file) {
+BIONtsv_2_phylodata <- function(input_file) {
   if (tolower(substr(input_file,nchar(input_file)-4,nchar(input_file))) == ".xlsx") {
     tsv_input = read.xlsx(input_file, 1) # read the first sheet    tax_vector = as.vector(tsv_input$Taxonomic.groups)
     
