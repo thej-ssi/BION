@@ -86,6 +86,42 @@ load_data <- function(input_file) {
   return(tsv_input)
 }
 
+load_data_2 <- function(input_file) {
+  if (tolower(substr(input_file,nchar(input_file)-4,nchar(input_file))) == ".xlsx") {
+    tsv_input = read.xlsx(input_file, 1) # read the first sheet    tax_vector = as.vector(tsv_input$Taxonomic.groups)
+    
+  }
+  else {
+    tsv_input = read.table(input_file,sep = '\t', comment.char = "", header = TRUE, stringsAsFactors = FALSE,check.names = FALSE)
+    if (substr(tsv_input[1,1],1,1) == '#') {
+      colcount = ncol(tsv_input)
+      sample_vector = colnames(tsv_input)[c(1:(colcount-6))]
+      sample_vector[1] = substr(sample_vector[1],3,nchar(sample_vector[1]))
+      counts = tsv_input[c(4:nrow(tsv_input)),c(1:(colcount-6))]
+      tax_vector = as.vector(tsv_input[c(4:nrow(tsv_input)),ncol(tsv_input)])
+      colnames(counts) = sample_vector
+      
+      new_counts = matrix(nrow = nrow(counts), ncol = 0)
+      for (col in 1:ncol(counts)) {
+        new_vector = as.numeric(as.vector(counts[,col]))
+        new_counts = cbind(new_counts,new_vector)
+      }
+      colnames(new_counts) = sample_vector
+      tsv_input = as.data.frame(new_counts)
+      tsv_input$Taxonomic.groups = tax_vector
+    }
+    otu_table = tsv_input[,!colnames(tsv_input) %in% c("Taxonomic.groups","Row.max")]
+    tax_table = matrix(nrow = 0, ncol = 7)
+    for (i in 1:length(tax_vector)) {
+      tax_split = strsplit(tax_vector[i],"; ",fixed=TRUE)
+      tax_vec = c(tax_split[[1]][1],tax_split[[1]][2],tax_split[[1]][3],tax_split[[1]][4],tax_split[[1]][5],tax_split[[1]][6],tax_split[[1]][7])
+      tax_table = rbind(tax_table,tax_vec)
+    }
+  }
+  return(list(tax.table=tax_table,otu.table=otu_table))
+}
+
+
 load_metadata <- function(metadata_file, metadata_split_variable) {
   if (metadata_file == "" | is.na(metadata_file)) {
     metadata = ""
