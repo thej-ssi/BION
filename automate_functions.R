@@ -115,11 +115,16 @@ BIONtsv_2_phylodata <- function(input_file) {
     for (i in 1:length(tax_vector)) {
       tax_split = strsplit(tax_vector[i],"; ",fixed=TRUE)
       tax_vec = c(tax_split[[1]][1],tax_split[[1]][2],tax_split[[1]][3],tax_split[[1]][4],tax_split[[1]][5],tax_split[[1]][6],tax_split[[1]][7])
+      tax_vec = unlist(lapply(tax_vec,function(x) substr(x,4,nchar(x))))
       tax_table = rbind(tax_table,tax_vec)
     }
   }
+  colnames(tax_table) = c("Domain","Phylum","Class","Order","Family","Genus","Species")
+  rownames(otu_table) = paste0("OTU",1:nrow(otu_table))
+  rownames(tax_table) = rownames(otu_table)
   return(list(tax.table=tax_table,otu.table=otu_table))
 }
+
 
 
 load_metadata <- function(metadata_file, metadata_split_variable) {
@@ -379,7 +384,7 @@ data_initialization <- function(input_file_list) { ## Add this to Thors code
 
 
 ### Set up two phyloseq objects, one for prokaryot and one for eukaryot species ###
-setup_phylo_object <- function(tsv_input,metadata) {
+setup_phylo_object <- function(tsv_input,metadata=NA) {
   if (colnames(tsv_input)[1] == "domain") {
     otu_table = as.matrix(tsv_input[,-(1:7)])
     tax_table = as.matrix(tsv_input[,1:7])
