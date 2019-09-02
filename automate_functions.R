@@ -674,7 +674,8 @@ alphadiversity_plot <- function(po,plot_name) {
   kruskal_Shannon = kruskal.test(r$Shannon,r$type)
   print(p1)
   print(p2)
-  return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value)
+  return_list = list("Observed_plot"=p1,"Shannon_plot"=p2,
+                     "Observed_pvalue"=kruskal_Observed$p.value,"Shannon_pvalue"=kruskal_Shannon$p.value)
   return(return_list)
 }
 
@@ -733,7 +734,9 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
   colnames(p_df_shannon) = groups
   rownames(p_df_observed) = groups
   colnames(p_df_observed) = groups
-  return_list = list(p1,p2,kruskal_Observed$p.value,kruskal_Shannon$p.value,p_df_observed,p_df_shannon)
+  return_list = list("Observed_plot"=p1,"Shannon_plot"=p2,
+                     "Observed_kruskal"=kruskal_Observed$p.value,"Shannon_kruskal"=kruskal_Shannon$p.value,
+                     "Observed_MWU_mat"=p_df_observed,"Shannon_MWU_mat"=p_df_shannon)
   print(col_vec)
   return(return_list)
 }
@@ -867,7 +870,7 @@ make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=
       anosim_test = anosim(t(otu_table(po)[,which(!is.na(phen_vec))]),grouping = phen_factor,permutations = 1000, distance = dist_method)
     }
     
-    returnlist = list(p,anosim_test,anosim_test$statistic,anosim_test$signif)
+    returnlist = list("Plot"=p,"Anosim_results"=anosim_test,"Anosim_R"=anosim_test$statistic,"Anosim_p"=anosim_test$signif)
   } else {
     returnlist = list(p)
   }
