@@ -883,6 +883,72 @@ make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=
 }
 
 
+get_pairwise_distance <- function(dist_mat,ID1, ID2 = NA) {
+  if (is.na(ID2)) {
+    sub_dist_mat = dist_mat[which(rownames(dist_mat) %in% ID1),which(colnames(dist_mat) %in% ID1)]
+    dist_vec = sub_dist_mat[upper.tri(sub_dist_mat)]
+  } else {
+    dist_vec = as.vector(dist_mat[which(rownames(dist_mat) %in% ID1),which(colnames(dist_mat) %in% ID2)])
+  }
+  return(dist_vec)
+}
+
+extended_anosim <- function(po,variable_name,plot_name = "",color_list=c()) {
+  BC_dist = vegdist(t(otu_table(po)))
+  BC_dist_mat = as.matrix(BC_dist)
+  group_factor = get_variable(po,variable_name)
+  if (class(group_factor) == "vector") {
+    groups = unique(group_factor)
+  } else {
+    groups = as.vector(levels(group_factor))
+  }
+  group_vec = as.vector(group_factor)
+  color_vec = setup_color_vector_2(po,variable_name,color_list)[[1]]
+  mat = matrix(nrow=0,ncol=3)
+  mean_mat = matrix(nrow=0,ncol=4)
+  groups_2 = c()
+  for (n in 1:length(groups)) {
+    for (m in n:length(groups)) {
+      ID1 = sample_names(po)[which(group_vec==groups[n])]
+      if (n == m) {
+        dist_vec = get_pairwise_distance(BC_dist_mat,ID1)
+        group_type_vec = rep("Within group",length(dist_vec))
+      } else {
+        ID2 = sample_names(po)[which(group_vec==groups[m])]
+        dist_vec = get_pairwise_distance(BC_dist_mat,ID1,ID2)
+        group_type_vec = rep("Between groups",length(dist_vec))
+      }
+      group_2_name = paste0(groups[n],'-',groups[m])
+      print(group_2_name)
+      groups_2 = c(groups_2,group_2_name)
+      mat_append = cbind(rep(group_2_name,length(dist_vec)),group_type_vec,dist_vec)
+      mat = rbind(mat,mat_append)
+      mean_mat = rbind(mean_mat,c(groups[n],groups[m],mean(dist_vec),sd(dist_vec)))
+    }
+  }
+  df = as.data.frame(mat)
+  colnames(df) = c("Group","Group_type","Distance")
+  df$Distance = as.numeric(as.vector(df$Distance))
+  p_mat = matrix(nrow=length(groups_2),ncol=length(groups_2))
+  for (n in 1:length(groups_2)) {
+    for (m in n:length(groups_2)) {
+      pval = wilcox.test(df$Distance[which(df$Group==groups_2[n])],df$Distance[which(df$Group==groups_2[m])])$p.value
+      p_mat[n,m] = pval
+      p_mat[m,n] = pval
+    }
+  }
+  mean_df = as.data.frame(mean_mat)
+  colnames(mean_df) = c("Group_1","Group_2","Mean","SD")
+  p_df = as.data.frame(p_mat)
+  colnames(p_df) = groups_2
+  rownames(p_df) = groups_2
+  
+  
+  return(list("Distances"=df, "Means"=mean_df, "p.values"=p_df))
+}
+
+              
+
 check_counts_both <- function(po_prokaryot,po_eukaryot) {
   print("Number of prokaryot sequences found in samples")
   print(sort(colSums(otu_table(po_prokaryot))))
