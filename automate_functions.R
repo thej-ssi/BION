@@ -1484,6 +1484,7 @@ make_OTU_boxplot_object_2 <- function(po,OTU,variable_name,plot_name="Distributi
            showlegend = FALSE)
 }
                           
+
 make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list=c()) {
   variable_factor = get_variable(po,variable_name)
   groups = levels(variable_factor)
@@ -1509,6 +1510,26 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
            yaxis=list(title=paste0(newname, ' rarefied sequence counts')),
            margin = list(l=50,r=50,b=100,t=50),
            showlegend = FALSE)
+  p_mat = matrix(ncol = length(groups), nrow = length(groups))
+  for (n1 in 1:(length(groups)-1)) {
+    print(n1)
+    for (n2 in (n1+1):length(groups)) {
+      group1 = groups[n1]
+      group2 = groups[n2]
+      print(paste0('group1 ',group1))
+      print(paste0('group2 ',group2))
+      vec1 = d[which(variable_factor==group1)]
+      vec2 = d[which(variable_factor==group2)]
+      wilcox_test = wilcox.test(vec1,vec2)
+      p_mat[n1,n2] <- wilcox_test$p.value
+      p_mat[n2,n1] <- wilcox_test$p.value
+    }
+    
+  }
+  p_df = as.data.frame(p_mat)
+  rownames(p_df) = groups
+  colnames(p_df) = groups
+  return_list = list('plot'=p,'p.values'=p_df)
 }
 
 
