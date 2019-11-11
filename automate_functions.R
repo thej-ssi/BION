@@ -893,14 +893,20 @@ get_pairwise_distance <- function(dist_mat,ID1, ID2 = NA) {
   return(dist_vec)
 }
 
-extended_anosim <- function(po,variable_name,plot_name = "",color_list=c()) {
-  BC_dist = vegdist(t(otu_table(po)))
+
+extended_anosim <- function(po,variable_name, dist_method = "bray",color_list=c()) {
+  if (dist_method == "euclidean") {
+    BC_dist = dist(t(otu_table(po)))
+  } else {
+    BC_dist = vegdist(t(otu_table(po)))
+  }
   BC_dist_mat = as.matrix(BC_dist)
   group_factor = get_variable(po,variable_name)
-  if (class(group_factor) == "vector") {
-    groups = unique(group_factor)
-  } else {
+  var_type = as.vector(class(group_factor))
+  if (var_type[length(var_type)]=="factor") {
     groups = as.vector(levels(group_factor))
+  } else {
+    groups = unique(group_factor)
   }
   group_vec = as.vector(group_factor)
   color_vec = setup_color_vector_2(po,variable_name,color_list)[[1]]
@@ -945,17 +951,6 @@ extended_anosim <- function(po,variable_name,plot_name = "",color_list=c()) {
   
   
   return(list("Distances"=df, "Means"=mean_df, "p.values"=p_df))
-}
-
-              
-
-check_counts_both <- function(po_prokaryot,po_eukaryot) {
-  print("Number of prokaryot sequences found in samples")
-  print(sort(colSums(otu_table(po_prokaryot))))
-  plot(sort(colSums(otu_table(po_prokaryot))),main = "Number of prokaryot sequences found in samples")
-  print("Number of eukaryot sequences found in samples")
-  print(sort(colSums(otu_table(po_eukaryot))))
-  plot(sort(colSums(otu_table(po_eukaryot))),main = "Number of eukaryot sequences found in samples")
 }
 
 
@@ -1423,7 +1418,80 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonfer
   return(return_df)
 }
                           
-                          
+
+make_paired_taxa_comparison <- function(po,variable_name,ID_name,p_adjust_method="bonferroni") {
+  d = otu_table(po)
+  tax = tax_table(po)
+  variable_factor = get_variable(po,variable_name)
+  variable_vector = as.vector(variable_factor)
+  if (class(variable_factor)=="factor") {
+    groups = levels(variable_factor)
+  } else {
+    groups = unique(variable_vector)
+  }
+  ID_vector = as.vector(get_variable(po,ID_name))
+  ID_1_rows = which(variable_vector == groups[1])
+  ID_2_rows = which(variable_vector == groups[2])
+  ID_vector_1 = ID_vector[ID_1_rows]
+  ID_vector_2 = ID_vector[ID_2_rows]
+  ID_1_rows = ID_1_rows[which(ID_vector_1 %in% ID_vector_2)]
+  ID_2_rows = ID_2_rows[which(ID_vector_2 %in% ID_vector_1)]
+  include_index = c(ID_1_rows[order(ID_vector_1)],ID_2_rows[order(ID_vector_2)])
+  print(include_index)
+  d = d[,include_index]
+  print(variable_vector)
+  variable_vector = variable_vector[include_index]
+  print(variable_vector)
+  variable_count = length(groups)
+  p_mat = tax
+  if (variable_count < 2) {
+    print("Less than two types found in designated variable")
+  } else if (variable_count == 2) {
+    mean_headers = c('mean, all')
+    
+    group_means = cbind(apply(d,1, function(e) mean(as.numeric(e))))
+    for (group in groups) {
+      group_mean = apply(d,1, function(e) mean(as.numeric(e[which(variable_vector == group)])))
+      group_means = cbind(group_means,group_mean)
+      mean_headers = c(mean_headers,paste0('mean, ',group))
+    }
+    MWU_tests = apply(d,1, function(e) wilcox.test(as.numeric(e[which(variable_vector == groups[1])]),as.numeric(e[which(variable_vector == groups[2])]), paired = TRUE)$p.value)
+    MWU_corrected = p.adjust(MWU_tests,method = p_adjust_method)
+    mwu_headers = c('p','p.adjusted')
+    p_mat = cbind(p_mat,as.numeric(MWU_tests),as.numeric(MWU_corrected))
+   }
+  #  else {
+  #   mean_headers = c('mean, all')
+  #   group_means = cbind(apply(d,1, function(e) mean(as.numeric(e))))
+  #   for (group in groups) {
+  #     group_mean = apply(d,1, function(e) mean(as.numeric(e[which(variable_vector == group)])))
+  #     group_means = cbind(group_means,group_mean)
+  #     mean_headers = c(mean_headers,paste0('mean, ',group))
+  #   }
+  #   mwu_headers = c()
+  #   for (n1 in 1:(length(groups)-1)) {
+  #     group1 = groups[n1]
+  #     for (n2 in (n1+1):length(groups)) {
+  #       group2 = groups[n2]
+  #       MWU_tests = apply(d,1, function(e) wilcox.test(as.numeric(e[which(variable_vector == group1)]),as.numeric(e[which(variable_vector == group2)]))$p.value)
+  #       MWU_corrected = p.adjust(MWU_tests,method = p_adjust_method)
+  #       mwu_header = paste0('p, ',group1,' v ',group2)
+  #       mwu_corrected_header = paste0('p.adjusted_',group1,'.v.',group2)
+  #       mwu_headers = c(mwu_headers,mwu_header,mwu_corrected_header)
+  #       p_mat = cbind(p_mat,as.numeric(MWU_tests),as.numeric(MWU_corrected))
+  #     }
+  #   }
+  # }
+  return_df = as.data.frame(cbind(rep(1:nrow(p_mat)),p_mat,group_means))
+  #apply(return_df[,9:ncol(return_df)],2, function(e) as.numeric(e))
+  colnames(return_df) = c("Rownumber",colnames(tax),mwu_headers,mean_headers)
+  rownames(return_df) = rownames(tax)
+  if ('p' %in% colnames(return_df)) {
+    return_df$p = as.numeric(as.vector(return_df$p))
+    return_df$p.adjusted = as.numeric(as.vector(return_df$p.adjusted))
+  }
+  return(return_df)
+}                         
                           
 make_presence_absence_comparison_object <- function(po,variable_name,p_adjust_method="bonferroni",presence_threshold_percent = 0) {
   d = otu_table(po)
@@ -1572,6 +1640,8 @@ setup_color_vector_2 <- function(po,variable_name,color_list) {
   return(list(group_colors,color_table))
 }
 
+                  
+                  
 test_color_tile <- function(color_vec) {
   values = rep(1,length(color_vec))
   col_vec = factor(color_vec,levels=c(as.character(color_vec)))
@@ -1594,7 +1664,14 @@ make_legend_color <- function(po,variable_name,color_list=c()) {
   return(p)
 }
 
-                  
+
+plot_colors <- function(color_vec) {
+  df = data.frame('ID'=names(color_vec),'color'=color_vec,'count'=1)
+  df$color = as.vector(df$color)
+  p <- plot_ly(data = df, type='bar',x=~ID,y=~count,color=~ID,colors=~color)
+  p
+}
+               
                   
 
 get_alphadiversity_change_observed <- function(po,pt_var,time_var,time_values,change_var) {
