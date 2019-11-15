@@ -1658,7 +1658,7 @@ make_legend_color <- function(po,variable_name,color_list=c()) {
   }
   values = rep(1,length(groups))
   variable_n = length(groups)
-  Rcol_vec = setup_color_vector(po,variable_name,color_list = color_list)
+  Rcol_vec = setup_color_vector_2(po,variable_name,color_list = color_list)
   xgroups = groups
   p <- plot_ly(type = "bar", x = xgroups, y = values, name = xgroups, color = xgroups, colors = Rcol_vec)
   return(p)
