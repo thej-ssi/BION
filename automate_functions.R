@@ -451,7 +451,7 @@ setup_phylo_object <- function(tsv_input,metadata=NA) {
   } else {
     po_fungi = 0
   }
-  returnlist = list(po_prokaryot,po_eukaryot,po_fungi)
+  returnlist = list('prokaryot'=po_prokaryot,'eukaryot'=po_eukaryot,'fungi'=po_fungi)
   return(returnlist)
 }
 
