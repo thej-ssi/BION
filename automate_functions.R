@@ -1411,7 +1411,7 @@ make_taxa_comparison_object <- function(po,variable_name,p_adjust_method="bonfer
       }
     }
   }
-  return_df = as.data.frame(cbind(rep(1:nrow(p_mat)),p_mat,group_means))
+  return_df = as.data.frame(cbind(rep(1:nrow(p_mat)),p_mat,group_means),stringsAsFactors=F)
   #apply(return_df[,9:ncol(return_df)],2, function(e) as.numeric(e))
   colnames(return_df) = c("Rownumber",colnames(tax),mwu_headers,mean_headers)
   rownames(return_df) = rownames(tax)
