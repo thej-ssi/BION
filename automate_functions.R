@@ -758,6 +758,7 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
   print(col_vec)
   return(return_list)
 }
+              
 make_barplot_with_tiles <- function(po,taxa,variable_name,plot_title="",color_vector=c()) {
   if (class(po)=="phyloseq") {
     taxmat = tax_table(po)
