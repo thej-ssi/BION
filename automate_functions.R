@@ -692,7 +692,7 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
     col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
   }
-  r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon")))
+  r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon","InvSimpson")))
   p1 <- plot_ly(r, y = ~Observed, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5, colors = col_vec) %>%
     layout(title = plot_title,
            #xaxis=list(tickangle = 90),
@@ -705,43 +705,56 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
            yaxis=list(title='Shannon diversity index'),
            margin = list(l=50,r=50,b=100,t=50),
            showlegend = FALSE)
+  p3 <- plot_ly(r, y = ~InvSimpson, color = ~type, type = "box", boxpoints = "all", pointpos = -1.5,colors = col_vec) %>%
+    layout(title = plot_title,
+           #xaxis=list(tickangle = -45),
+           yaxis=list(title='Inverse Simpson index'),
+           margin = list(l=50,r=50,b=100,t=50),
+           showlegend = FALSE)
   shannon_matrix = matrix(ncol = length(groups), nrow = length(groups))
   observed_matrix = matrix(ncol = length(groups), nrow = length(groups))
+  simpson_matrix = matrix(ncol = length(groups), nrow = length(groups))
   for (n1 in 1:(length(groups)-1)) {
     print(n1)
     for (n2 in (n1+1):length(groups)) {
       group1 = groups[n1]
       group2 = groups[n2]
       ### Shannon
-      print(paste0('group1 ',group1))
-      print(paste0('group2 ',group2))
       vec1 = r$Shannon[which(r$type==group1)]
       vec2 = r$Shannon[which(r$type==group2)]
       wilcox_shannon = wilcox.test(vec1,vec2)
       shannon_matrix[n1,n2] <- wilcox_shannon$p.value
       shannon_matrix[n2,n1] <- wilcox_shannon$p.value
       ### Observed
-      print(paste0('group1 ',group1))
-      print(paste0('group2 ',group2))
       vec1 = r$Observed[which(r$type==group1)]
       vec2 = r$Observed[which(r$type==group2)]
       wilcox_observed = wilcox.test(vec1,vec2)
       observed_matrix[n1,n2] <- wilcox_observed$p.value
       observed_matrix[n2,n1] <- wilcox_observed$p.value
+      ### Simpson
+      vec1 = r$InvSimpson[which(r$type==group1)]
+      vec2 = r$InvSimpson[which(r$type==group2)]
+      wilcox_simpson = wilcox.test(vec1,vec2)
+      simpson_matrix[n1,n2] <- wilcox_simpson$p.value
+      simpson_matrix[n2,n1] <- wilcox_simpson$p.value
     }
     
   }
   kruskal_Observed = kruskal.test(r$Observed,r$type)
   kruskal_Shannon = kruskal.test(r$Shannon,r$type)
+  kruskal_Simpson = kruskal.test(r$InvSimpson,r$type)
   p_df_shannon = as.data.frame(shannon_matrix)
   p_df_observed = as.data.frame(observed_matrix)
+  p_df_simpson = as.data.frame(simpson_matrix)
   rownames(p_df_shannon) = groups
   colnames(p_df_shannon) = groups
   rownames(p_df_observed) = groups
   colnames(p_df_observed) = groups
-  return_list = list("Observed_plot"=p1,"Shannon_plot"=p2,
-                     "Observed_kruskal"=kruskal_Observed$p.value,"Shannon_kruskal"=kruskal_Shannon$p.value,
-                     "Observed_MWU_mat"=p_df_observed,"Shannon_MWU_mat"=p_df_shannon)
+  rownames(p_df_simpson) = groups
+  colnames(p_df_simpson) = groups
+  return_list = list("Observed_plot"=p1,"Shannon_plot"=p2,"Simpson_plot"=p3,
+                     "Observed_kruskal"=kruskal_Observed$p.value,"Shannon_kruskal"=kruskal_Shannon$p.value,,"Simpson_kruskal"=kruskal_Simpson$p.value,
+                     "Observed_MWU_mat"=p_df_observed,"Shannon_MWU_mat"=p_df_shannon,"Simpson_MWU_mat"=p_df_simpson
   print(col_vec)
   return(return_list)
 }
