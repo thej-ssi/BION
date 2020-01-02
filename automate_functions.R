@@ -754,7 +754,7 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
   colnames(p_df_simpson) = groups
   return_list = list("Observed_plot"=p1,"Shannon_plot"=p2,"Simpson_plot"=p3,
                      "Observed_kruskal"=kruskal_Observed$p.value,"Shannon_kruskal"=kruskal_Shannon$p.value,,"Simpson_kruskal"=kruskal_Simpson$p.value,
-                     "Observed_MWU_mat"=p_df_observed,"Shannon_MWU_mat"=p_df_shannon,"Simpson_MWU_mat"=p_df_simpson
+                     "Observed_MWU_mat"=p_df_observed,"Shannon_MWU_mat"=p_df_shannon,"Simpson_MWU_mat"=p_df_simpson)
   print(col_vec)
   return(return_list)
 }
