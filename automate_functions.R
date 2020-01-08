@@ -1508,7 +1508,7 @@ make_paired_taxa_comparison <- function(po,variable_name,ID_name,p_adjust_method
 }                         
                           
 make_presence_absence_comparison_object <- function(po,variable_name,p_adjust_method="bonferroni",presence_threshold_percent = 0) {
-  d = otu_table(po)
+  d = as.matrix(otu_table(po))
   tax = tax_table(po)
   variable_vector = as.vector(get_variable(po,variable_name))
   groups = unique(variable_vector)
