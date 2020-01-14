@@ -82,6 +82,19 @@ load_metadata <- function(metadata_file, metadata_split_variable) {
   return(metadata)
 }
 
+compare_datasets <- function(tsv_input,metadata) {
+  BION_IDs = colnames(tsv_input)[8:ncol(tsv_input)]
+  metadata_IDs = rownames(metadata)
+  missing_BION_IDs = BION_IDs[which(!BION_IDs %in% metadata_IDs)]
+  missing_metadata_IDs = metadata_IDs[which(!metadata_IDs %in% BION_IDs)]
+  match_IDs = BION_IDs[which(BION_IDs %in% metadata_IDs)]
+  print(paste0(length(match_IDs)," sample names are found in both BION data and metadata"))
+  print(paste0(length(missing_metadata_IDs)," sample names from BION output are missing from metadata:"))
+  if (length(missing_metadata_IDs)>0) {print(missing_metadata_IDs)}
+  print(paste0(length(missing_BION_IDs)," sample names from metadata are missing from BION output:"))
+  if (length(missing_BION_IDs)>0) {print(missing_BION_IDs)}
+}
+
 collapse_Aspergillaceae <- function(tax_table,otu_table) {
   Aspergillaceae_rows = which(tax_table[,5]=="Aspergillaceae")
   Trichocomaceae_rows = which(tax_table[,5]=="Trichocomaceae")
@@ -636,7 +649,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   
   #make_barplot_plus_object(po,top10_taxa,"Group","Top 10 most abundant species",color_vector)
   
-  print("Printing heatmap of top 30 species")
+  print("Printing heatmap of top 30 genera")
   #Heatmap = make_heatmap_object(po_genus,get_top_n_taxa(po_genus,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
   png(filename = paste0(output_dir,"/Fig_4-1_Heatmap.png"), width = 1000, height = 700, res=72)
   make_heatmap_object(po_genus,get_top_n_taxa(po_genus,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
