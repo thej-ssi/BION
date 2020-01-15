@@ -614,7 +614,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   color_vector = setup_color_vector(po,"Group",color_list)
   
   print("Calculating alphadiversity and printing plots")
-  Alphadiv_plot = make_alphadiversity_object(po,variable_name = "Group",plot_title = paste0("Alpha diversity of ",variable_name),color_vector)
+  Alphadiv_plot = make_alphadiversity_object(po,variable_name = "Group",plot_title = paste0("Alpha diversity grouped by ",variable_name),color_vector)
   filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed.png")
   export(Alphadiv_plot$Observed_plot,file=filename)
   filename = paste0(output_dir,"/Fig_1-2_alphadiversity_shannon.png")
@@ -628,12 +628,12 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   PCoA_binary = make_PCoA_object(po,variable_name = "Group",paste0("PCoA based on Binary Jaccard distance grouped by ",variable_name),color_vector,dist_method = "binary")
   ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_binary.png"),plot = PCoA_binary$plot)
   
- 
+  
   ### Barplots ###
   print("Printing barplots")
   po_genus = tax_glom(po,"Genus")
   top10_taxa = get_top_n_taxa(po_genus,10)
-  bar_plot = make_abundance_barplot(po_genus,taxa = top10_taxa, "Top 10 most abundant species")
+  bar_plot = make_abundance_barplot(po_genus,taxa = top10_taxa, "Top 10 most abundant genera")
   filename = paste0(output_dir,"/Fig_3-1_barplot_all.png")
   export(bar_plot,file=filename)
   for (i in 1:length(levels(get_variable(po_genus,"Group")))) {
@@ -664,5 +664,4 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   
   #return(list(Alphadiv_plot,PCoA_BC,PCoA_binary,bar_plot,Heatmap,taxa_comparison_df))
 }
-
 
