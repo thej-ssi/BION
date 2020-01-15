@@ -624,9 +624,9 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   
   print("Calculating PCoA and printing plots")
   PCoA_BC = make_PCoA_object(po,variable_name = "Group",plot_title = paste0("PCoA based on Bray Curtis dissimilarity grouped by ",variable_name),color_vector)
-  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_BrayCurtis.png"),plot = PCoA_BC$plot)
+  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_BrayCurtis.png"),plot = PCoA_BC[[1]],device = "png")
   PCoA_binary = make_PCoA_object(po,variable_name = "Group",paste0("PCoA based on Binary Jaccard distance grouped by ",variable_name),color_vector,dist_method = "binary")
-  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_binary.png"),plot = PCoA_binary$plot)
+  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_binary.png"),plot = PCoA_binary[[1]],device = "png")
   
   
   ### Barplots ###
@@ -660,6 +660,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   pvalue_list = list("Observed_richness"=Alphadiv_plot$Observed_MWU_mat,"Shannon_diversity"=Alphadiv_plot$Shannon_MWU_mat,"Simpson_diversity"=Alphadiv_plot$Simpson_MWU_mat,
                      "PCoA"=data.frame("Type"=c("Bray curtis","Binary Jaccard"),"R.values"=c(PCoA_BC$Anosim_R,PCoA_binary$Anosim_R),"p.values"=c(PCoA_BC$Anosim_p,PCoA_binary$Anosim_p)),
                      "Genus_abundance_comparison"=taxa_comparison_df)
+  print("Printing p values to excel sheets")
   write.xlsx(pvalue_list,paste0(output_dir,"/p_value_tables.xlsx"),row.names=TRUE)
   
   #return(list(Alphadiv_plot,PCoA_BC,PCoA_binary,bar_plot,Heatmap,taxa_comparison_df))
