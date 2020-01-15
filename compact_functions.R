@@ -559,7 +559,6 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap
     top_10_matrix = otu_table(po)[top_10_taxa,]
     rownames(top_10_matrix) = newnames
   }
-  print(group_color_vector)
   return_object = heatmap.2(top_10_matrix,
                             distfun = vegdist,
                             hclustfun = function(x) hclust(x, method = "ward.D"),
