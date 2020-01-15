@@ -665,12 +665,4 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   #return(list(Alphadiv_plot,PCoA_BC,PCoA_binary,bar_plot,Heatmap,taxa_comparison_df))
 }
 
-run_cross_sectional_analysis(po = rare_pro,variable_name = "Giardia.blasto.Archa",RColorBrewer::brewer.pal(4,"Set1"),output_folder = "test")
-t = run_cross_sectional_analysis(po = rare_pro,variable_name = "Giardia.blasto.Archa",RColorBrewer::brewer.pal(4,"Set1"),output_folder = "test")
 
-po_genus = rare_pro_genus
-sample_data(po_genus)$Group = factor(as.character(as.vector(get_variable(po_genus,"Giardia.blasto.Archa"))))
-color_vector = RColorBrewer::brewer.pal(4,"Set1")
-Heatmap = make_heatmap_object(po_genus,get_top_n_taxa(po_genus,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
-
-Heatmap
