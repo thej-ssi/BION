@@ -206,6 +206,16 @@ setup_phylo_object <- function(tsv_input,metadata=NA) {
   return(returnlist)
 }
 
+prune_by_variable <- function(po,variable_name,variable_value) {
+  return_po = prune_samples(sample_names(po)[which(get_variable(po,variable_name) %in% variable_value)],po)
+}
+
+check_counts <- function(po) {
+  print("Number of sequences found in samples")
+  print(sort(colSums(otu_table(po))))
+  plot(sort(colSums(otu_table(po))),main = "Number of sequences found in samples")
+}
+
 make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
   groups = levels(factor(get_variable(po,variable_name)))
   if (length(color_list) == length(groups)) {
