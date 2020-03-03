@@ -458,6 +458,53 @@ make_abundance_barplot <- function(po,taxa,plot_name="Relative abundance") {
     return(p)
   }
 }
+make_abundance_barplot_ggplot <- function(po,taxa,plot_title="Relative abundance") {
+  if (class(po)=="phyloseq") {
+    taxmat = tax_table(po)
+    dd<-otu_table(po)
+    dd<-apply(dd, 2, function(x) x/sum(x)*100)
+    dd<-as.data.frame(dd)
+    
+    dd$sum<-apply(dd, 1, sum)
+    dd_sorted<-dd[dd$sum>0,]
+    dd_sorted<-dd_sorted[,-ncol(dd_sorted)]
+    dd_sorted_d<-vegdist(t(dd_sorted), method="bray")
+    fit <- hclust(dd_sorted_d, method="ward.D")
+    #plot(fit, cex=0.5) # display dendogram
+    cluster_order<-fit$labels[fit$order]
+    newnames = c()
+    top10_otu_table = matrix(nrow=0,ncol=ncol(dd_sorted))
+    for (i in 1:length(taxa)) {
+      rownumber = taxa[i]
+      tax_vector = as.vector(taxmat[rownumber,])
+      if (!is.na(tax_vector[7])) {
+        newname = paste0(tax_vector[6],' ',tax_vector[7])
+      } else if (!is.na(tax_vector[6]) & !tax_vector[6]=="unclassified") {
+        newname = tax_vector[6]
+      } else if (!is.na(tax_vector[5]) & !tax_vector[5]=="unclassified") {
+        newname = tax_vector[5]
+      } else if (!is.na(tax_vector[4]) & !tax_vector[4]=="unclassified") {
+        newname = tax_vector[4]
+      } else if (!is.na(tax_vector[3]) & !tax_vector[3]=="unclassified") {
+        newname = tax_vector[3]
+      } else {
+        newname = tax_vector[2]
+      }
+      newnames = c(newnames,newname)
+      top10_otu_table = rbind(top10_otu_table,dd[rownumber,])
+    }
+    rownames(top10_otu_table)<-newnames
+    top10=top10_otu_table
+    top10 = top10[,!colnames(top10)=="sum"]
+    top10$species<-row.names(top10)
+    melt_top10<-melt(top10)
+    melt_top10$variable <- factor(melt_top10$variable,levels = cluster_order)
+    names(melt_top10)<-c("genus", "ID", "percent")
+    p = ggplot(melt_top10,aes(x=ID,y=percent,fill=genus)) + geom_bar(position="stack", stat="identity") + theme_bw() + theme(axis.title.x = element_blank(), axis.text.x = element_text(angle=90)) + ylab("Relative abundance in percent") + ggtitle(plot_title) + 
+      scale_fill_manual(values = rev(c('#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf')))
+    return(p)
+  }
+}
 
 get_top_n_taxa <- function(po,n) {
   otu_sum<-apply(otu_table(po), 1, sum)
@@ -688,12 +735,15 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   
   print("Calculating alphadiversity and printing plots")
   Alphadiv_plot = make_alphadiversity_object(po,variable_name = "Group",plot_title = paste0("Alpha diversity grouped by ",variable_name),color_vector)
-  filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed.png")
-  export(Alphadiv_plot$Observed_plot,file=filename)
-  filename = paste0(output_dir,"/Fig_1-2_alphadiversity_shannon.png")
-  export(Alphadiv_plot$Shannon_plot,file=filename)
-  filename = paste0(output_dir,"/Fig_1-3_alphadiversity_simpson.png")
-  export(Alphadiv_plot$Simpson_plot,file=filename)
+  filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed")
+  ggsave(filename = filename,plot = Alphadiv_plot$Observec_plot,device = "png")
+  #export(Alphadiv_plot$Observed_plot,file=filename)
+  filename = paste0(output_dir,"/Fig_1-2_alphadiversity_shannon")
+  ggsave(filename = filename,plot = Alphadiv_plot$Shannon_plot,device = "png")
+  #export(Alphadiv_plot$Shannon_plot,file=filename)
+  filename = paste0(output_dir,"/Fig_1-3_alphadiversity_simpson")
+  ggsave(filename = filename,plot = Alphadiv_plot$Simpson_plot,device = "png")
+  #export(Alphadiv_plot$Simpson_plot,file=filename)
   
   print("Calculating PCoA and printing plots")
   PCoA_BC = make_PCoA_object(po,variable_name = "Group",plot_title = paste0("PCoA based on Bray Curtis dissimilarity grouped by ",variable_name),color_vector)
@@ -706,17 +756,19 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   print("Printing barplots")
   po_genus = tax_glom(po,"Genus")
   top10_taxa = get_top_n_taxa(po_genus,10)
-  bar_plot = make_abundance_barplot(po_genus,taxa = top10_taxa, "Top 10 most abundant genera")
-  filename = paste0(output_dir,"/Fig_3-1_barplot_all.png")
-  export(bar_plot,file=filename)
+  bar_plot = make_abundance_barplot_ggplot(po_genus,taxa = top10_taxa, "Top 10 most abundant genera")
+  filename = paste0(output_dir,"/Fig_3-1_barplot_all")
+  ggsave(filename = filename,plot = bar_plot,device = "png")
+  #export(bar_plot,file=filename)
   for (i in 1:length(levels(get_variable(po_genus,"Group")))) {
     n = i+1
     var = levels(get_variable(po_genus,"Group"))[i]
     po_sub = prune_by_variable(po_genus,"Group",var)
     var_name = gsub("/","_",var)
-    bar_plot = make_abundance_barplot(po_sub,taxa = top10_taxa, paste0("Relative abundance of top species in ",var," samples"))
-    filename = paste0(output_dir,"/Fig_3-",n,"_barplot_",var_name,".png")
-    export(bar_plot,file=filename)
+    bar_plot = make_abundance_barplot_ggplot(po_sub,taxa = top10_taxa, paste0("Relative abundance of top species in ",var," samples"))
+    filename = paste0(output_dir,"/Fig_3-",n,"_barplot_",var_name)
+    #export(bar_plot,file=filename)
+    ggsave(filename = filename,plot = bar_plot,device = "png")
   }
   
   #make_barplot_plus_object(po,top10_taxa,"Group","Top 10 most abundant species",color_vector)
