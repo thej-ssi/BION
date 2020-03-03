@@ -734,7 +734,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   color_vector = setup_color_vector(po,"Group",color_list)
   
   print("Calculating alphadiversity and printing plots")
-  Alphadiv_plot = make_alphadiversity_object(po,variable_name = "Group",plot_title = paste0("Alpha diversity grouped by ",variable_name),color_vector)
+  Alphadiv_plot = make_alphadiversity_object_ggplot(po,variable_name = "Group",plot_title = paste0("Alpha diversity grouped by ",variable_name),color_vector)
   filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed")
   ggsave(filename = filename,plot = Alphadiv_plot$Observec_plot,device = "png")
   #export(Alphadiv_plot$Observed_plot,file=filename)
