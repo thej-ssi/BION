@@ -291,6 +291,66 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
   return(return_list)
 }
 
+make_alphadiversity_object_ggplot <- function(po,variable_name,plot_title,color_list) {
+  groups = levels(factor(get_variable(po,variable_name)))
+  if (length(color_list) == length(groups)) {
+    col_vec = color_list
+  } else {
+    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+  }
+  r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon","InvSimpson")))
+  p1 <- ggplot(r,aes(x = type, y = Observed, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=Observed), position = position_jitter(w = 0.15, h = 0)) + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Number of species") + ggtitle(plot_title)
+  p2 <- ggplot(r,aes(x = type, y = Shannon, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=Shannon), position = position_jitter(w = 0.15, h = 0)) + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Shannon diversity index") + ggtitle(plot_title)
+  p3 <- ggplot(r,aes(x = type, y = InvSimpson, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=InvSimpson), position = position_jitter(w = 0.15, h = 0)) + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Inverse simpson diversity index") + ggtitle(plot_title)
+  shannon_matrix = matrix(ncol = length(groups), nrow = length(groups))
+  observed_matrix = matrix(ncol = length(groups), nrow = length(groups))
+  simpson_matrix = matrix(ncol = length(groups), nrow = length(groups))
+  for (n1 in 1:(length(groups)-1)) {
+    print(n1)
+    for (n2 in (n1+1):length(groups)) {
+      group1 = groups[n1]
+      group2 = groups[n2]
+      ### Shannon
+      vec1 = r$Shannon[which(r$type==group1)]
+      vec2 = r$Shannon[which(r$type==group2)]
+      wilcox_shannon = wilcox.test(vec1,vec2)
+      shannon_matrix[n1,n2] <- wilcox_shannon$p.value
+      shannon_matrix[n2,n1] <- wilcox_shannon$p.value
+      ### Observed
+      vec1 = r$Observed[which(r$type==group1)]
+      vec2 = r$Observed[which(r$type==group2)]
+      wilcox_observed = wilcox.test(vec1,vec2)
+      observed_matrix[n1,n2] <- wilcox_observed$p.value
+      observed_matrix[n2,n1] <- wilcox_observed$p.value
+      ### Simpson
+      vec1 = r$InvSimpson[which(r$type==group1)]
+      vec2 = r$InvSimpson[which(r$type==group2)]
+      wilcox_simpson = wilcox.test(vec1,vec2)
+      simpson_matrix[n1,n2] <- wilcox_simpson$p.value
+      simpson_matrix[n2,n1] <- wilcox_simpson$p.value
+    }
+    
+  }
+  kruskal_Observed = kruskal.test(r$Observed,r$type)
+  kruskal_Shannon = kruskal.test(r$Shannon,r$type)
+  kruskal_Simpson = kruskal.test(r$InvSimpson,r$type)
+  p_df_shannon = as.data.frame(shannon_matrix)
+  p_df_observed = as.data.frame(observed_matrix)
+  p_df_simpson = as.data.frame(simpson_matrix)
+  rownames(p_df_shannon) = groups
+  colnames(p_df_shannon) = groups
+  rownames(p_df_observed) = groups
+  colnames(p_df_observed) = groups
+  rownames(p_df_simpson) = groups
+  colnames(p_df_simpson) = groups
+  return_list = list("Observed_plot"=p1,"Shannon_plot"=p2,"Simpson_plot"=p3,
+                     "Observed_kruskal"=kruskal_Observed$p.value,"Shannon_kruskal"=kruskal_Shannon$p.value,"Simpson_kruskal"=kruskal_Simpson$p.value,
+                     "Observed_MWU_mat"=p_df_observed,"Shannon_MWU_mat"=p_df_shannon,"Simpson_MWU_mat"=p_df_simpson)
+  print(col_vec)
+  return(return_list)
+}
+
 
 
 make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=c(),perform_anosim = TRUE,dist_method = "bray",rngseed = 1) {
