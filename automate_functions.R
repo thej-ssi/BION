@@ -20,11 +20,11 @@ if(! require("phyloseq")) {
 }
 library('phyloseq')
 
-if(! require("DESeq2")) {
-  source('http://bioconductor.org/biocLite.R')
-  biocLite("DESeq2")
-}
-library('DESeq2')
+#if(! require("DESeq2")) {
+#  source('http://bioconductor.org/biocLite.R')
+#  biocLite("DESeq2")
+#}
+#library('DESeq2')
 
 pkgTest('vegan')
 pkgTest('tibble')
