@@ -783,8 +783,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   taxa_comparison_df = make_taxa_comparison_object(po_genus,"Group","bonferroni")
   
   pvalue_list = list("Observed_richness"=Alphadiv_plot$Observed_MWU_mat,"Shannon_diversity"=Alphadiv_plot$Shannon_MWU_mat,"Simpson_diversity"=Alphadiv_plot$Simpson_MWU_mat,
-                     "PCoA"=data.frame("Type"=c("Bray curtis"),"R.values"=c(PCoA_BC$Anosim_R),"p.values"=c(PCoA_BC$Anosim_p)),
-                     #"PCoA"=data.frame("Type"=c("Bray curtis","Binary Jaccard"),"R.values"=c(PCoA_BC$Anosim_R,PCoA_binary$Anosim_R),"p.values"=c(PCoA_BC$Anosim_p,PCoA_binary$Anosim_p)),
+                     "PCoA"=data.frame("Type"=c("Bray curtis"),"R.value"=c(PCoA_BC$Anosim_R),"p.value"=c(PCoA_BC$Anosim_p)),
                      "Genus_abundance_comparison"=taxa_comparison_df)
   print("Printing p values to excel sheets")
   write.xlsx(pvalue_list,paste0(output_dir,"/p_value_tables.xlsx"),row.names=TRUE)
