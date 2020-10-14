@@ -40,12 +40,12 @@ rare_fungi = rarefy_even_depth(po_fungi,fungal_rarefaction_threshold,rngseed = 1
 variable_to_compare = "Geographic.localisation" # Note that column names in metadata can change when loaded due to illegal characters. To see names of metadata variables use:
 colnames(sample_data(rare_pro))                  # variable_to_compare should match one of these
 
-color_list = c()  # Colors will be picked automatcially if left empty
+color_list = c()  # Colors will be picked automatcially if left empty or if the number of colors listed does not match the number of colors needed
 
 ### Run prokaryot analysis and save plots ###
 name_of_output_folder = "prokaryot_analysis_example_output"  # Set name of ouput folder
 run_cross_sectional_analysis(rare_pro,variable_to_compare,color_list = color_list,output_folder = name_of_output_folder)
 
 ### Run eukaryot analysis and save plots ###
-name_of_output_folder = "fungi_analysis"        # Set name of ouput folder
+name_of_output_folder = "fungi_analysis_example_output"        # Set name of ouput folder
 run_cross_sectional_analysis(rare_fungi,variable_to_compare,color_list = color_list,output_folder = name_of_output_folder)
