@@ -16,8 +16,7 @@ library('RCurl')
 if(! require("phyloseq")) {
   if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-    BiocManager::install(version = "3.11")
-  biocLite('phyloseq')
+    BiocManager::install("phyloseq")
 }
 library('phyloseq')
 
