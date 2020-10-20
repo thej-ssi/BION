@@ -14,7 +14,9 @@ if(! require("RCurl")) {install.packages("RCurl")}
 library('RCurl')
 
 if(! require("phyloseq")) {
-  source('http://bioconductor.org/biocLite.R')
+  if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+    BiocManager::install(version = "3.11")
   biocLite('phyloseq')
 }
 library('phyloseq')
