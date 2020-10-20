@@ -635,34 +635,34 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
   return_list = list('plot'=p,'p.values'=p_df)
 }
 
-raw_read_comparison <- function(po,variable_to_compare) {
-  read_sums = as.numeric(colSums(otu_table(po)))
-  variable_factor = get_variable(po,variable_to_compare)
-  if (!class(variable_factor) == "factor") {
-    variable_factor = factor(variable_factor)
-  }
-  plot_data_frame = data.frame("group" = variable_factor, "read.count" = read_sums)
-  print(plot_data_frame)
-  p = ggplot()
-  groups = levels(variable_factor)
-  p_mat = matrix(ncol = length(groups), nrow = length(groups))
-  for (n1 in 1:(length(groups)-1)) {
-    for (n2 in (n1+1):length(groups)) {
-      group1 = groups[n1]
-      group2 = groups[n2]
-      vec1 = read_sums[which(variable_factor==group1)]
-      vec2 = read_sums[which(variable_factor==group2)]
-      wilcox_test = wilcox.test(vec1,vec2)
-      p_mat[n1,n2] <- wilcox_test$p.value
-      p_mat[n2,n1] <- wilcox_test$p.value
-    }
-    
-  }
-  colnames(p_mat) = groups
-  rownames(p_mat) = groups
-  p_df = as.data.frame(p_mat)
-  return(p_mat)
-}
+# raw_read_comparison <- function(po,variable_to_compare) {
+#   read_sums = as.numeric(colSums(otu_table(po)))
+#   variable_factor = get_variable(po,variable_to_compare)
+#   if (!class(variable_factor) == "factor") {
+#     variable_factor = factor(variable_factor)
+#   }
+#   plot_data_frame = data.frame("group" = variable_factor, "read.count" = read_sums)
+#   print(plot_data_frame)
+#   p = ggplot()
+#   groups = levels(variable_factor)
+#   p_mat = matrix(ncol = length(groups), nrow = length(groups))
+#   for (n1 in 1:(length(groups)-1)) {
+#     for (n2 in (n1+1):length(groups)) {
+#       group1 = groups[n1]
+#       group2 = groups[n2]
+#       vec1 = read_sums[which(variable_factor==group1)]
+#       vec2 = read_sums[which(variable_factor==group2)]
+#       wilcox_test = wilcox.test(vec1,vec2)
+#       p_mat[n1,n2] <- wilcox_test$p.value
+#       p_mat[n2,n1] <- wilcox_test$p.value
+#     }
+#     
+#   }
+#   colnames(p_mat) = groups
+#   rownames(p_mat) = groups
+#   p_df = as.data.frame(p_mat)
+#   return(p_mat)
+# }
 
 make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap",color_list=c()) {
   group_color_vector = as.vector(get_variable(po,variable_name))
