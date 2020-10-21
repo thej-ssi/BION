@@ -3,12 +3,13 @@ source("https://raw.githubusercontent.com/thej-ssi/BION/master/compact_functions
 
 ### Set working directory ###
 setwd("/Volumes/data/MPV/THEJ/Projekter/Microbiome/Salem")
+setwd("/Users/thej/Documents/GitHub/BION/example/")
 
 ### Load BION data (excel file or raw BION tsv output) ###
-d = load_data("Salem_otu_data_191220.xlsx")
+d = load_data("example_OTU_data.xlsx")
 
 ### Load metadata (excel file or tab-separated text file)
-m = read.xlsx("Salem_metadata_191220.xlsx",colNames = TRUE)
+m = read.xlsx("example_metadata.xlsx",colNames = TRUE)
 
 
 
