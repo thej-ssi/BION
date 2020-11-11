@@ -660,7 +660,7 @@ raw_read_comparison <- function(po,variable_to_compare) {
   colnames(p_mat) = groups
   rownames(p_mat) = groups
   p_df = as.data.frame(p_mat)
-  return(p_mat)
+  return(list("df"=plot_data_frame,"p.mat"=p_mat))
 }
 
 make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap",color_list=c()) {
