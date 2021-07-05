@@ -9,7 +9,7 @@ setwd("/Users/thej/Documents/GitHub/BION/example/")
 d = load_data("example_OTU_data.xlsx")
 
 ### Load metadata (excel file or tab-separated text file)
-m = read.xlsx("example_metadata.xlsx",colNames = TRUE)
+m = read.xlsx("example_metadata.xlsx",colNames = TRUE,rowNames = TRUE)
 
 
 
