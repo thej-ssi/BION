@@ -267,14 +267,16 @@ make_alphadiversity_object <- function(po,variable_name,plot_title,color_list) {
 
 make_alphadiversity_object_ggplot <- function(po,variable_name,plot_title,color_list) {
   groups = levels(factor(get_variable(po,variable_name)))
-  col_vec = setup_color_vector(po,variable_name,color_list)
+  if (length(color_list) == length(groups)) {
+    col_vec = color_list
+  } else {
+    col_vec = RColorBrewer::brewer.pal(length(groups),"Set1")
+    print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
+  }
   r <- data.frame(ID=sample_names(po), type=factor(get_variable(po,variable_name)), richness=colSums(otu_table(po) > 0), estimate_richness(po,measures = c("Observed","Shannon","InvSimpson")))
-  p1 <- ggplot(r,aes(x = type, y = Observed, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=Observed), position = position_jitter(w = 0.15, h = 0)) + 
-    theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Number of species") + ggtitle(plot_title) + scale_colour_manual(values = col_vec) 
-  p2 <- ggplot(r,aes(x = type, y = Shannon, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=Shannon), position = position_jitter(w = 0.15, h = 0)) + 
-    theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Shannon diversity index") + ggtitle(plot_title) + scale_colour_manual(values = col_vec) 
-  p3 <- ggplot(r,aes(x = type, y = InvSimpson, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=InvSimpson), position = position_jitter(w = 0.15, h = 0)) + 
-    theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Inverse simpson diversity index") + ggtitle(plot_title) + scale_colour_manual(values = col_vec) 
+  p1 <- ggplot(r,aes(x = type, y = Observed, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=Observed), position = position_jitter(w = 0.15, h = 0)) + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Number of species") + ggtitle(plot_title)
+  p2 <- ggplot(r,aes(x = type, y = Shannon, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=Shannon), position = position_jitter(w = 0.15, h = 0)) + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Shannon diversity index") + ggtitle(plot_title)
+  p3 <- ggplot(r,aes(x = type, y = InvSimpson, fill = type)) + geom_boxplot() + geom_point(aes(x=type, y=InvSimpson), position = position_jitter(w = 0.15, h = 0)) + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + ylab("Inverse simpson diversity index") + ggtitle(plot_title)
   shannon_matrix = matrix(ncol = length(groups), nrow = length(groups))
   observed_matrix = matrix(ncol = length(groups), nrow = length(groups))
   simpson_matrix = matrix(ncol = length(groups), nrow = length(groups))
@@ -340,14 +342,14 @@ make_PCoA_object <- function(po,variable_name,plot_title="PCoA_plot",color_list=
   if (length(groups) == length(color_list)) {
     col_vec = color_list
     names(col_vec) = groups
-    p = plot_ordination(po,ord, color=variable_name, title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec) + labs(variable_name)
+    p = plot_ordination(po,ord, color=variable_name, title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
   } else if (length(groups) <= 9) {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
     col_vec = RColorBrewer::brewer.pal(9,"Set1")[1:length(groups)]
-    p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec) + labs(variable_name)
+    p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + scale_colour_manual(values = col_vec)
   } else {
     print(paste0('Number of colors given (', length(color_list) , ') does not match number of levels in variable (', length(groups),')'))
-    p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75) + labs(variable_name)
+    p = plot_ordination(po,ord, color=as.character(variable_name), title = plot_title) + geom_point(size=2, alpha=0.01)+ stat_ellipse(level=0.75)
   }
   if (perform_anosim) {
     phen_vec = as.character(get_variable(po,variable_name))
@@ -606,19 +608,17 @@ make_OTU_boxplot_object <- function(po,OTU,variable_name,plot_name="",color_list
   return_list = list('plot'=p,'p.values'=p_df)
 }
 
-raw_read_comparison <- function(po,variable_name,color_list) {
+raw_read_comparison <- function(po,variable_to_compare) {
   read_sums = as.numeric(colSums(otu_table(po)))
-  variable_factor = get_variable(po,variable_name)
-  if (!class(variable_factor)=="factor") {
+  variable_factor = get_variable(po,variable_to_compare)
+  if (!class(variable_factor) == "factor") {
     variable_factor = factor(variable_factor)
   }
-  col_vec = setup_color_vector(po,variable_name,color_list)
   plot_data_frame = data.frame("group" = variable_factor, "read.count" = read_sums)
-  p = ggplot(plot_data_frame,aes(x=group,y=read.count,fill=group)) + geom_boxplot() + geom_point(aes(x=group, y=read.count), position = position_jitter(w = 0.15, h = 0)) + 
-    theme_bw() + ggtitle("Raw read distribution")  + scale_colour_manual(values = col_vec) + labs(variable_name) + theme(axis.text.x = element_text(angle=45,hjust = 0.95))
+  print(plot_data_frame)
+  p = ggplot()
   groups = levels(variable_factor)
   p_mat = matrix(ncol = length(groups), nrow = length(groups))
-  print(class(variable_factor))
   for (n1 in 1:(length(groups)-1)) {
     for (n2 in (n1+1):length(groups)) {
       group1 = groups[n1]
@@ -634,7 +634,7 @@ raw_read_comparison <- function(po,variable_name,color_list) {
   colnames(p_mat) = groups
   rownames(p_mat) = groups
   p_df = as.data.frame(p_mat)
-  return(list("plot"=p,"p.values"=p_mat))
+  return(p_mat)
 }
 
 make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap",color_list=c()) {
@@ -739,18 +739,18 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   print("Calculating alphadiversity and printing plots")
   Alphadiv_plot = make_alphadiversity_object_ggplot(po,variable_name = "Group",plot_title = paste0("Alpha diversity grouped by ",variable_name),color_vector)
   filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed.png")
-  ggsave(filename = filename,plot = Alphadiv_plot$Observed_plot,device = "png",dpi = 300, units = "cm", height = 12, width = 20)
+  ggsave(filename = filename,plot = Alphadiv_plot$Observed_plot,device = "png")
   #export(Alphadiv_plot$Observed_plot,file=filename)
   filename = paste0(output_dir,"/Fig_1-2_alphadiversity_shannon.png")
-  ggsave(filename = filename,plot = Alphadiv_plot$Shannon_plot,device = "png",dpi = 300, units = "cm", height = 12, width = 20)
+  ggsave(filename = filename,plot = Alphadiv_plot$Shannon_plot,device = "png")
   #export(Alphadiv_plot$Shannon_plot,file=filename)
   filename = paste0(output_dir,"/Fig_1-3_alphadiversity_simpson.png")
-  ggsave(filename = filename,plot = Alphadiv_plot$Simpson_plot,device = "png",dpi = 300, units = "cm", height = 12, width = 20)
+  ggsave(filename = filename,plot = Alphadiv_plot$Simpson_plot,device = "png")
   #export(Alphadiv_plot$Simpson_plot,file=filename)
   
   print("Calculating PCoA and printing plots")
-  PCoA_BC = make_PCoA_object(po,variable_name = variable_name,plot_title = paste0("PCoA based on Bray Curtis dissimilarity grouped by ",variable_name),color_vector)
-  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_BrayCurtis.png"),plot = PCoA_BC[[1]],device = "png",dpi = 300, units = "cm", height = 12, width = 20)
+  PCoA_BC = make_PCoA_object(po,variable_name = "Group",plot_title = paste0("PCoA based on Bray Curtis dissimilarity grouped by ",variable_name),color_vector)
+  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_BrayCurtis.png"),plot = PCoA_BC[[1]],device = "png")
   #PCoA_binary = make_PCoA_object(po,variable_name = "Group",paste0("PCoA based on Binary Jaccard distance grouped by ",variable_name),color_vector,dist_method = "binary")
   #ggsave(filename = paste0(output_dir,"/Fig_2-2_PCoA_binary.png"),plot = PCoA_binary[[1]],device = "png")
   
@@ -761,7 +761,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   top10_taxa = get_top_n_taxa(po_genus,10)
   bar_plot = make_abundance_barplot_ggplot(po_genus,taxa = top10_taxa, "Top 10 most abundant genera")
   filename = paste0(output_dir,"/Fig_3-1_barplot_all.png")
-  ggsave(filename = filename,plot = bar_plot,device = "png",dpi = 300, units = "cm", height = 12, width = 20)
+  ggsave(filename = filename,plot = bar_plot,device = "png")
   #export(bar_plot,file=filename)
   for (i in 1:length(levels(get_variable(po_genus,"Group")))) {
     n = i+1
@@ -771,14 +771,14 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
     bar_plot = make_abundance_barplot_ggplot(po_sub,taxa = top10_taxa, paste0("Relative abundance of top species in ",var," samples"))
     filename = paste0(output_dir,"/Fig_3-",n,"_barplot_",var_name,".png")
     #export(bar_plot,file=filename)
-    ggsave(filename = filename,plot = bar_plot,device = "png",dpi = 300, units = "cm", height = 12, width = 20)
+    ggsave(filename = filename,plot = bar_plot,device = "png")
   }
   
   #make_barplot_plus_object(po,top10_taxa,"Group","Top 10 most abundant species",color_vector)
   
   print("Printing heatmap of top 30 genera")
   #Heatmap = make_heatmap_object(po_genus,get_top_n_taxa(po_genus,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
-  png(filename = paste0(output_dir,"/Fig_4-1_Heatmap.png"), width = 1500, height = 1000, res=150)
+  png(filename = paste0(output_dir,"/Fig_4-1_Heatmap.png"), width = 1000, height = 700, res=72)
   make_heatmap_object(po_genus,get_top_n_taxa(po_genus,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
   dev.off()
   

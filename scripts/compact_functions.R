@@ -765,18 +765,18 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   print("Calculating alphadiversity and printing plots")
   Alphadiv_plot = make_alphadiversity_object_ggplot(po,variable_name = "Group",plot_title = paste0("Alpha diversity grouped by ",variable_name),color_vector)
   filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed.png")
-  ggsave(filename = filename,plot = Alphadiv_plot$Observed_plot,device = "png")
+  ggsave(filename = filename,plot = Alphadiv_plot$Observed_plot,device = "png",dpi = 300)
   #export(Alphadiv_plot$Observed_plot,file=filename)
   filename = paste0(output_dir,"/Fig_1-2_alphadiversity_shannon.png")
-  ggsave(filename = filename,plot = Alphadiv_plot$Shannon_plot,device = "png")
+  ggsave(filename = filename,plot = Alphadiv_plot$Shannon_plot,device = "png",dpi = 300)
   #export(Alphadiv_plot$Shannon_plot,file=filename)
   filename = paste0(output_dir,"/Fig_1-3_alphadiversity_simpson.png")
-  ggsave(filename = filename,plot = Alphadiv_plot$Simpson_plot,device = "png")
+  ggsave(filename = filename,plot = Alphadiv_plot$Simpson_plot,device = "png",dpi = 300)
   #export(Alphadiv_plot$Simpson_plot,file=filename)
   
   print("Calculating PCoA and printing plots")
   PCoA_BC = make_PCoA_object(po,variable_name = "Group",plot_title = paste0("PCoA based on Bray Curtis dissimilarity grouped by ",variable_name),color_vector)
-  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_BrayCurtis.png"),plot = PCoA_BC[[1]],device = "png")
+  ggsave(filename = paste0(output_dir,"/Fig_2-1_PCoA_BrayCurtis.png"),plot = PCoA_BC[[1]],device = "png",dpi = 300)
   #PCoA_binary = make_PCoA_object(po,variable_name = "Group",paste0("PCoA based on Binary Jaccard distance grouped by ",variable_name),color_vector,dist_method = "binary")
   #ggsave(filename = paste0(output_dir,"/Fig_2-2_PCoA_binary.png"),plot = PCoA_binary[[1]],device = "png")
   
@@ -787,7 +787,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   top10_taxa = get_top_n_taxa(po_genus,10)
   bar_plot = make_abundance_barplot_ggplot(po_genus,taxa = top10_taxa, "Top 10 most abundant genera")
   filename = paste0(output_dir,"/Fig_3-1_barplot_all.png")
-  ggsave(filename = filename,plot = bar_plot,device = "png")
+  ggsave(filename = filename,plot = bar_plot,device = "png",dpi = 300)
   #export(bar_plot,file=filename)
   for (i in 1:length(levels(get_variable(po_genus,"Group")))) {
     n = i+1
@@ -797,7 +797,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
     bar_plot = make_abundance_barplot_ggplot(po_sub,taxa = top10_taxa, paste0("Relative abundance of top species in ",var," samples"))
     filename = paste0(output_dir,"/Fig_3-",n,"_barplot_",var_name,".png")
     #export(bar_plot,file=filename)
-    ggsave(filename = filename,plot = bar_plot,device = "png")
+    ggsave(filename = filename,plot = bar_plot,device = "png",dpi = 300)
   }
   
   #make_barplot_plus_object(po,top10_taxa,"Group","Top 10 most abundant species",color_vector)

@@ -43,24 +43,6 @@ po_eu = po_all$eukaryot
 po_fungi = po_all$fungi
 
 
-### Set rarefaction thresholds ###
-prokaryot_rarefaction_threshold = opt$prokaryot_threshold
-rare_pro = rarefy_even_depth(po_pro,prokaryot_rarefaction_threshold,rngseed = 1)
-
-fungal_rarefaction_threshold = opt$fungal_threshold
-rare_fungi = rarefy_even_depth(po_fungi,fungal_rarefaction_threshold,rngseed = 1)
-
-
-
-### Indicate which variable in metadata should be compared ###
-
-color_list = c()  # Colors will be picked automatcially if left empty
-
-
-### Run prokaryot analysis and save plots ###
-name_of_output_folder = file.path(opt$output_directory,"prokaryot_analysis")  # Set name of ouput folder
-run_cross_sectional_analysis(rare_pro,variable_to_compare,color_list = color_list,output_folder = name_of_output_folder)
-
-### Run eukaryot analysis and save plots ###
-name_of_output_folder = file.path(opt$output_directory,"fungi_analysis")       # Set name of ouput folder
-run_cross_sectional_analysis(rare_fungi,variable_to_compare,color_list = color_list,output_folder = name_of_output_folder)
+test = raw_read_comparison(po_pro,"Geographic.localisation",c())
+filename = file.path(opt$output_directory,"raw_read_distribution_prokaryot.png")
+ggsave(filename = filename,plot = test$plot,device = "png",dpi = 300, units = "cm", height = 12, width = 20)
