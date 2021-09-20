@@ -804,7 +804,7 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   
   print("Printing heatmap of top 30 genera")
   #Heatmap = make_heatmap_object(po_genus,get_top_n_taxa(po_genus,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
-  png(filename = paste0(output_dir,"/Fig_4-1_Heatmap.png"), width = 1000, height = 700, res=72)
+  png(filename = paste0(output_dir,"/Fig_4-1_Heatmap.png"), width = 1000, height = 700, res=300,units="px")
   make_heatmap_object(po_genus,get_top_n_taxa(po_genus,30),"Group",paste0("Heatmap showing over and underrepresentation of top 30 species, ",variable_name),color_vector)
   dev.off()
   
