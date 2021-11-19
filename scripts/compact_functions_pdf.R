@@ -797,8 +797,8 @@ run_cross_sectional_analysis <- function(po, variable_name, color_list, output_f
   
   print("Calculating alphadiversity and printing plots")
   Alphadiv_plot = make_alphadiversity_object_ggplot(po,variable_name = "Group",plot_title = paste0("Alpha diversity grouped by ",variable_name),color_vector)
-  filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed.tiff")
-  ggsave(filename = filename,plot = Alphadiv_plot$Observed_plot,device = "pdf",width = 8,height=6,units="in",dpi = 300)
+  filename = paste0(output_dir,"/Fig_1-1_alphadiversity_observed.pdf")
+  ggsave(filename = filename,plot = Alphadiv_plot$Observed_plot,device = "pdf",dpi = 300)
   #export(Alphadiv_plot$Observed_plot,file=filename)
   filename = paste0(output_dir,"/Fig_1-2_alphadiversity_shannon.pdf")
   ggsave(filename = filename,plot = Alphadiv_plot$Shannon_plot,device = "pdf",dpi = 300)
