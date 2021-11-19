@@ -702,8 +702,9 @@ make_heatmap_object <- function(po,top_10_taxa,variable_name,plot_title="Heatmap
   
   if (length(top_10_taxa) > 10) {
     other_sum = colSums(otu_table(po)[-top_10_taxa,])
-    top_10_matrix = rbind(otu_table(po)[top_10_taxa,],other_sum)
-    rownames(top_10_matrix) = c(newnames,"Other")
+    top_10_taxa_ordered = top_10_taxa[order(newnames)]
+    top_10_matrix = rbind(otu_table(po)[top_10_taxa_ordered,],other_sum)
+    rownames(top_10_matrix) = c(newnames[order(newnames)],"Other")
   } else {
     top_10_matrix = otu_table(po)[top_10_taxa,]
     rownames(top_10_matrix) = newnames
