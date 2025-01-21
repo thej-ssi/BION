@@ -14,16 +14,13 @@ if(! require("RCurl")) {install.packages("RCurl")}
 library('RCurl')
 
 if(! require("phyloseq")) {
-  source('http://bioconductor.org/biocLite.R')
-  biocLite('phyloseq')
-}
+  if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+  
+  BiocManager::install("phyloseq")
+a}
 library('phyloseq')
 
-# if(! require("DESeq2")) {
-#   source('http://bioconductor.org/biocLite.R')
-#   biocLite("DESeq2")
-# }
-# library('DESeq2')
 
 pkgTest('vegan')
 pkgTest('tibble')
@@ -135,6 +132,7 @@ collapse_Aspergillaceae <- function(tax_table,otu_table) {
   }
   return_list = list(tax_table,otu_table)
 }
+
 setup_phylo_object <- function(tsv_input,metadata=NA) {
   if (colnames(tsv_input)[1] == "domain") {
     otu_table = as.matrix(tsv_input[,-(1:7)])
@@ -171,7 +169,7 @@ setup_phylo_object <- function(tsv_input,metadata=NA) {
     }
   }
   tax_ranks = c("Domain","Phylum","Class","Order","Family","Genus","Species")
-  if (metadata == "" | is.na(metadata)) {
+  if (! class(metadata) == "data.frame") {
     metadata = cbind(rep("all samples"),ncol(otu_prokaryot))
     rownames(metadata) = colnames(otu_prokaryot)
     colnames(metadata)[1] = "sample_groups"
